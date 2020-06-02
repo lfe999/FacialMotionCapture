@@ -34,7 +34,7 @@ namespace LFE.FacialMotionCapture.Devices {
             _socket.Connect(_ipEndPoint);
 
             // send header (logo) 512x132 px
-            string iconPath = _plugin.GetPackagePath() + "Devices/VamLogo.png";
+            string iconPath = _plugin.GetPluginPath() + "Devices/VamLogo.png";
             byte[] icon = MVR.FileManagementSecure.FileManagerSecure.ReadAllBytes(iconPath);
             byte[] padding = new byte[icon.Length % 1024];
             byte[] iconSize = BitConverter.GetBytes((int)(icon.Length + padding.Length));

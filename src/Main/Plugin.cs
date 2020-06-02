@@ -118,7 +118,7 @@ namespace LFE.FacialMotionCapture.Main {
         private void InitPluginUI() {
 
             var ipAddressStorable = new JSONStorableString("IP Address", "Enter IP for Live Face app");
-            // var ipAddressStorable = new JSONStorableString("IP Address", "192.168.7.20");
+
             // enter ip address textfield
             var targetValuesTextField = CreateTextField(ipAddressStorable);
             targetValuesTextField.backgroundImage.color = Color.white;
@@ -198,7 +198,6 @@ namespace LFE.FacialMotionCapture.Main {
         }
 
         private void CreateMorphMultipliers() {
-            // experiment with showing morph controls
             foreach(var name in CBlendShape.Names()) {
                 var shapeId = CBlendShape.NameToId(name) ?? 0;
                 shapeMultipliers[shapeId] = new JSONStorableFloat($"{name} Strength Multiplier", DefaultShapeMultiplier(shapeId), -10, 10, true, true);
@@ -324,17 +323,6 @@ namespace LFE.FacialMotionCapture.Main {
             string id = this.name.Substring(0, this.name.IndexOf('_'));
             string filename = this.manager.GetJSON()["plugins"][id].Value;
             string path = filename.Substring(0, filename.LastIndexOfAny(new char[] { '/', '\\' }) + 1);
-            return path;
-        }
-
-        // Get path prefix of the package that contains our plugin.
-        public string GetPackagePath()
-        {
-            string filename = this.GetPluginPath();
-            int idx = filename.IndexOf(":/");
-            string path = filename;
-            if (idx >= 0)
-                path = filename.Substring(0, idx + 2);
             return path;
         }
 	}
