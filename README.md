@@ -40,3 +40,7 @@ Many auto expressions will get in the way of motion capture.  Try playing around
 
 ![](images/auto_behaviors.png?raw=true)
 
+# Credits
+
+Icon: Face Recognition by mungang kim from the Noun Project
+
