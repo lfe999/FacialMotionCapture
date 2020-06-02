@@ -2,6 +2,8 @@
 
 Facial motion capture on newer iOS devices
 
+![](images/demo.gif?raw=true)
+
 ## Quickstart
 
 - [Install LIVE Face phone app](https://itunes.apple.com/us/app/live-face/id1357551209) on your iPhone. This app is not written by, nor supported by me.
