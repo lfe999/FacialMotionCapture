@@ -40,6 +40,15 @@ Many auto expressions will get in the way of motion capture.  Try playing around
 
 ![](images/auto_behaviors.png?raw=true)
 
+# TODO
+
+- save chosen IP address
+- figure out a way to record your morph changes
+- save chosen morph strength/multiplier settings
+- add support for eye movement
+- map remaining blendshapes to morphs (if you see a slider turning dark grey as you experiment, that means the morph is not mapped yet)
+- find morphs better suited for motion capture. anyone can convert these to G2F/G2M? https://sharecg.com/v/92621/browse/21/DAZ-Studio/FaceShifter-For-Genesis-8-Female
+
 # Credits
 
 Icon: Face Recognition by mungang kim from the Noun Project
