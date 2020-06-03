@@ -24,6 +24,33 @@ If you have VaM running already, click on the *Main UI > File (Open/Save) > Resc
 
 ## Tips
 
+### How can I change what morph is used for each "blendshape"?
+
+After you connect for the first time to the phone, a configuration file will be created that you can edit.  In the future this will be easier but sorry, it is by hand right now.
+
+**Saves\lfe_facialmotioncaptuire.json**
+```
+{
+   "clientIp" : "192.168.1.2", 
+   "mappings" : { 
+      "Brow Down Left" : { 
+         "morph" : "Put whatever morph name you want here", 
+         "strength" : "1"
+      }, 
+      "Brow Down Right" : { 
+         "morph" : "or here", 
+         "strength" : "1"
+      }, 
+      "Brow Inner Up" : { 
+         "morph" : "",  // empty means disabled
+         "strength" : "1"
+      }, 
+      ...
+}
+```
+
+Reload the plugin after editing this file.
+
 ### How can I record these facial capture changes?
 
 Unfortunately this plugin does not record morph changes right now.  You will have to get creative with how these morph changes get stored to a scene.  Message me if you have any ideas on how to do this.
@@ -42,10 +69,9 @@ Many auto expressions will get in the way of motion capture.  Try playing around
 
 # TODO
 
-- save chosen IP address
 - figure out a way to record your morph changes
-- save chosen morph strength/multiplier settings
 - add support for eye movement
+- easier way for you to say what morph is used for each phone change that comes in
 - map remaining blendshapes to morphs (if you see a slider turning dark grey as you experiment, that means the morph is not mapped yet)
 - find morphs better suited for motion capture. anyone can convert these to G2F/G2M? https://sharecg.com/v/92621/browse/21/DAZ-Studio/FaceShifter-For-Genesis-8-Female
 

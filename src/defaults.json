@@ -1,0 +1,213 @@
+{
+    "clientIp": "",
+    "mappings": {
+        "Brow Down Left": {
+            "morph": "Brow Down Left",
+            "strength": 1
+        },
+        "Brow Down Right": {
+            "morph": "Brow Down Right",
+            "strength": 1
+        },
+        "Brow Inner Up": {
+            "morph": "Brow Inner Up",
+            "strength": 1
+        },
+        "Brow Outer Up Left": {
+            "morph": "Brow Outer Up Left",
+            "strength": 1
+        },
+        "Brow Outer Up Right": {
+            "morph": "Brow Outer Up Right",
+            "strength": 1
+        },
+        "Cheek Puff": {
+            "morph": "Cheeks Balloon",
+            "strength": 2
+        },
+        "Cheek Squint Left": {
+            "morph": "Cheek Flex Left",
+            "strength": 1
+        },
+        "Cheek Squint Right": {
+            "morph": "Cheek Flex Right",
+            "strength": 1
+        },
+        "Eye Blink Left": {
+            "morph": "Eyes Closed Left",
+            "strength": 1
+        },
+        "Eye Blink Right": {
+            "morph": "Eyes Closed Right",
+            "strength": 1
+        },
+        "Eye Look Down Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look Down Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look In Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look In Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look Out Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look Out Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look Up Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Look Up Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Eye Squint Left": {
+            "morph": "Eyes Squint Left",
+            "strength": 1
+        },
+        "Eye Squint Right": {
+            "morph": "Eyes Squint Right",
+            "strength": 1
+        },
+        "Eye Wide Left": {
+            "morph": "Eyes Open",
+            "strength": 2.3
+        },
+        "Eye Wide Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Jaw Forward": {
+            "morph": "Jaw In-Out",
+            "strength": 1
+        },
+        "Jaw Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Jaw Open": {
+            "morph": "Mouth Open Wide 2",
+            "strength": 1
+        },
+        "Jaw Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Close": {
+            "morph": "Mouth Open Wide 3",
+            "strength": -0.7 
+        },
+        "Mouth Dimple Left": {
+            "morph": "Cheeks Dimple Crease Left",
+            "strength": 1
+        },
+        "Mouth Dimple Right": {
+            "morph": "Cheeks Dimple Crease Right",
+            "strength": 1
+        },
+        "Mouth Frown Left": {
+            "morph": "Mouth Frown",
+            "strength": 0.5
+        },
+        "Mouth Frown Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Funnel": {
+            "morph": "OW",
+            "strength": 1
+        },
+        "Mouth Left": {
+            "morph": "Mouth Side-Side Left",
+            "strength": 1
+        },
+        "Mouth Lower Down Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Lower Down Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Press Left": {
+            "morph": "Mouth Narrow Left",
+            "strength": -1
+        },
+        "Mouth Press Right": {
+            "morph": "Mouth Narrow Right",
+            "strength": -1
+        },
+        "Mouth Pucker": {
+            "morph": "Lips Pucker",
+            "strength": 1
+        },
+        "Mouth Right": {
+            "morph": "Mouth Side-Side Right",
+            "strength": 1
+        },
+        "Mouth Roll Lower": {
+            "morph": "Lip Bottom In",
+            "strength": 1
+        },
+        "Mouth Roll Upper": {
+            "morph": "Lip Top Down",
+            "strength": 1
+        },
+        "Mouth Shrug Lower": {
+            "morph": "Lip Bottom Out",
+            "strength": 1
+        },
+        "Mouth Shrug Upper": {
+            "morph": "Lip Top Up",
+            "strength": 1
+        },
+        "Mouth Smile Left": {
+            "morph": "Mouth Smile Simple Left",
+            "strength": 1.5
+        },
+        "Mouth Smile Right": {
+            "morph": "Mouth Smile Simple Right",
+            "strength": 1.5
+        },
+        "Mouth Stretch Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Stretch Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Tongue Out": {
+            "morph": "Tongue In-Out",
+            "strength": -1
+        },
+        "Mouth Upper Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Mouth Upper Right": {
+            "morph": "",
+            "strength": 1
+        },
+        "Nose Sneer Left": {
+            "morph": "",
+            "strength": 1
+        },
+        "Nose Sneer Right": {
+            "morph": "",
+            "strength": 1
+        }
+    }
+}

@@ -10,12 +10,16 @@ namespace LFE.FacialMotionCapture.Main {
 
 	public class Plugin : MVRScript {
 
+        private const string SAVE_FILE = "Saves\\lfe_facialmotioncapture.json";
+
         private IFacialCaptureClient client;
         private Queue<BlendShapeReceivedEventArgs> changes = new Queue<BlendShapeReceivedEventArgs>();
 
         public Atom SelectedPerson;
         public FreeControllerV3 EyeController;
         public GenerateDAZMorphsControlUI MorphControl;
+
+        public SimpleJSON.JSONClass Settings;
 
 		public override void Init() {
 			// TODO: create the UI
@@ -28,6 +32,7 @@ namespace LFE.FacialMotionCapture.Main {
                 SelectedPerson = containingAtom;
                 MorphControl = SelectedPerson.GetMorphsControlUI();
                 EyeController = SelectedPerson.GetStorableByID("eyeTargetControl") as FreeControllerV3;
+                Settings = SettingsLoad();
             }
             else
             {
@@ -73,11 +78,13 @@ namespace LFE.FacialMotionCapture.Main {
             UIDynamicSlider sliderUI;
             if(morph != null) {
                 // this will let you set a value outside of the range
-                morph.SetValue(item.Value * shapeMultipliers[item.Shape.Id].val);
+                // morph.SetValue(item.Value * shapeMultipliers[item.Shape.Id].val);
+                morph.morphValueAdjustLimits = item.Value * shapeMultipliers[item.Shape.Id].val;
 
-                // these keep you within the morph range
+                // these keep you within the morph range??
                 // morph.jsonFloat.SetVal(item.Value * shapeMultipliers[item.Shape.Id].val);
                 // morph.jsonFloat.val = item.Value * shapeMultipliers[item.Shape.Id].val;
+                // morph.jsonFloat.valNoCallback = item.Value * shapeMultipliers[item.Shape.Id].val;
 
                 // update slider color in the UI
                 shapeMultiplierSliders.TryGetValue(item.Shape.Id, out sliderUI);
@@ -113,11 +120,33 @@ namespace LFE.FacialMotionCapture.Main {
         // -------------------------------------------------------------
         // -------------------------------------------------------------
 
+        private void SettingsSave(SimpleJSON.JSONClass settings) {
+            SuperController.singleton.SaveJSON(settings, SAVE_FILE);
+        }
+
+        private SimpleJSON.JSONClass SettingsLoad() {
+
+            SimpleJSON.JSONClass settings;
+            if(MVR.FileManagementSecure.FileManagerSecure.FileExists(SAVE_FILE, onlySystemFiles: true)) {
+                settings = SuperController.singleton.LoadJSON(SAVE_FILE)?.AsObject;
+            }
+            else {
+                settings = SuperController.singleton.LoadJSON($"{GetPluginPath()}defaults.json")?.AsObject;
+            }
+
+            return settings;
+        }
+
         private Dictionary<int, JSONStorableFloat> shapeMultipliers = new Dictionary<int, JSONStorableFloat>();
         private Dictionary<int, UIDynamicSlider> shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
         private void InitPluginUI() {
 
-            var ipAddressStorable = new JSONStorableString("IP Address", "Enter IP for Live Face app");
+            string ipAddress = "Enter IP for Live Face app";
+            if(!string.IsNullOrEmpty(Settings["clientIp"])) {
+                ipAddress = Settings["clientIp"].Value;
+            }
+
+            var ipAddressStorable = new JSONStorableString("IP Address", ipAddress);
 
             // enter ip address textfield
             var targetValuesTextField = CreateTextField(ipAddressStorable);
@@ -131,6 +160,8 @@ namespace LFE.FacialMotionCapture.Main {
             targetValuesInput.image = targetValuesTextField.backgroundImage;
             targetValuesInput.onValueChanged.AddListener((string value) => {
                 ipAddressStorable.val = value;
+                Settings["clientIp"] = value;
+                SettingsSave(Settings);
             });
 
 
@@ -200,7 +231,19 @@ namespace LFE.FacialMotionCapture.Main {
         private void CreateMorphMultipliers() {
             foreach(var name in CBlendShape.Names()) {
                 var shapeId = CBlendShape.NameToId(name) ?? 0;
-                shapeMultipliers[shapeId] = new JSONStorableFloat($"{name} Strength Multiplier", DefaultShapeMultiplier(shapeId), -10, 10, true, true);
+                var multiplier = 1.0f;
+                if(Settings["mappings"]?.AsObject[name]?.AsObject != null) {
+                    multiplier = Settings["mappings"][name]["strength"].AsFloat;
+                }
+                shapeMultipliers[shapeId] = new JSONStorableFloat(
+                    $"{name} Strength Multiplier",
+                    multiplier,
+                    (float value) => {
+                        Settings["mappings"][name]["strength"] = new SimpleJSON.JSONData(value);
+                        SettingsSave(Settings);
+                    },
+                    -10, 10, true, true
+                );
                 shapeMultiplierSliders[shapeId] = CreateSlider(shapeMultipliers[shapeId], rightSide: (shapeId % 2 == 0));
             }
         }
@@ -216,97 +259,13 @@ namespace LFE.FacialMotionCapture.Main {
             shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
         }
 
-        private float DefaultShapeMultiplier(int id) {
-            switch(id) {
-                case CBlendShape.MOUTH_TONGUE_OUT:
-                case CBlendShape.MOUTH_PRESS_LEFT:
-                case CBlendShape.MOUTH_PRESS_RIGHT:
-                    return -1;
-                default:
-                    return 1;
-            }
-        }
-
         private string MapShapeToMorph(BlendShape shape) {
             if(shape == null) {
                 return null;
             }
 
-            switch(shape.Id) {
-                case CBlendShape.BROW_INNER_UP:
-                    return "Brow Inner Up";
-                case CBlendShape.BROW_DOWN_LEFT:
-                    return "Brow Down Left";
-                case CBlendShape.BROW_DOWN_RIGHT:
-                    return "Brow Down Right";
-                case CBlendShape.BROW_OUTER_UP_LEFT:
-                    return "Brow Outer Up Left";
-                case CBlendShape.BROW_OUTER_UP_RIGHT:
-                    return "Brow Outer Up Right";
-                case CBlendShape.EYE_BLINK_LEFT:
-                    return "Eyes Closed Left";
-                case CBlendShape.EYE_BLINK_RIGHT:
-                    return "Eyes Closed Right";
-                case CBlendShape.EYE_SQUINT_LEFT:
-                    return "Eyes Squint Left";
-                case CBlendShape.EYE_SQUINT_RIGHT:
-                    return "Eyes Squint Right";
-                case CBlendShape.EYE_WIDE_LEFT:
-                case CBlendShape.EYE_WIDE_RIGHT:
-                    // consider AAeyeswide3 ?
-                    return null;
-                case CBlendShape.CHEEK_PUFF:
-                    return "Cheeks Balloon";
-                case CBlendShape.CHEEK_SQUINT_LEFT:
-                    return "Cheek Flex Left";
-                case CBlendShape.CHEEK_SQUINT_RIGHT:
-                    return "Cheek Flex Right";
-                case CBlendShape.NOSE_SNEER_LEFT:
-                case CBlendShape.NOSE_SNEER_RIGHT:
-                    return null;
-                case CBlendShape.JAW_OPEN:
-                    return "Mouth Open Wide 2";
-                case CBlendShape.JAW_FORWARD:
-                    return "Jaw In-Out";
-                case CBlendShape.MOUTH_DIMPLE_LEFT:
-                    return "Cheeks Dimple Crease Left";
-                case CBlendShape.MOUTH_DIMPLE_RIGHT:
-                    return "Cheeks Dimple Crease Right";
-                case CBlendShape.MOUTH_FUNNEL:
-                    return "OW";
-                case CBlendShape.MOUTH_PUCKER:
-                    return "Lips Pucker";
-                case CBlendShape.MOUTH_LEFT:
-                    return "Mouth Side-Side Left";
-                case CBlendShape.MOUTH_RIGHT:
-                    return "Mouth Side-Side Right";
-                case CBlendShape.MOUTH_ROLL_UPPER:
-                    return "Lip Top Down";
-                case CBlendShape.MOUTH_ROLL_LOWER:
-                    return "Lip Botton In";
-                case CBlendShape.MOUTH_SHRUG_LOWER:
-                    return "Lip Bottom Out";
-                case CBlendShape.MOUTH_SHRUG_UPPER:
-                    return "Lip Top Up";
-                case CBlendShape.MOUTH_SMILE_LEFT:
-                    return "Mouth Smile Simple Left";
-                case CBlendShape.MOUTH_SMILE_RIGHT:
-                    return "Mouth Smile Simple Right";
-                case CBlendShape.MOUTH_FROWN_LEFT:
-                case CBlendShape.MOUTH_FROWN_RIGHT:
-                case CBlendShape.MOUTH_UPPER_LEFT:
-                case CBlendShape.MOUTH_UPPER_RIGHT:
-                case CBlendShape.MOUTH_LOWER_DOWN_LEFT:
-                case CBlendShape.MOUTH_LOWER_DOWN_RIGHT:
-                case CBlendShape.MOUTH_STRETCH_LEFT:
-                case CBlendShape.MOUTH_STRETCH_RIGHT:
-                    return null;
-                case CBlendShape.MOUTH_PRESS_LEFT:
-                    return "Mouth Narrow Left";
-                case CBlendShape.MOUTH_PRESS_RIGHT:
-                    return "Mouth Narrow Right";
-                case CBlendShape.MOUTH_TONGUE_OUT:
-                    return "Tongue In-Out";
+            if(Settings["mappings"].AsObject.HasKey(shape.Name)) {
+                return Settings["mappings"][shape.Name]["morph"].Value;
             }
             return null;
         }
