@@ -51,9 +51,9 @@ After you connect for the first time to the phone, a configuration file will be 
 
 Reload the plugin after editing this file.
 
-### How can I record these facial capture changes?
+### How can I playback my recorded captures?
 
-Unfortunately this plugin does not record morph changes right now.  You will have to get creative with how these morph changes get stored to a scene.  Message me if you have any ideas on how to do this.
+The recordings can be imported into the Timeline plugin by Acid Bubbles.  You can get this plugin here. https://hub.virtamate.com/resources/timeline.94/
 
 ### Adjust jaw physics
 
@@ -69,10 +69,8 @@ Many auto expressions will get in the way of motion capture.  Try playing around
 
 # TODO
 
-- figure out a way to record your morph changes
 - add support for eye movement
 - easier way for you to say what morph is used for each phone change that comes in
-- map remaining blendshapes to morphs (if you see a slider turning dark grey as you experiment, that means the morph is not mapped yet)
 - find morphs better suited for motion capture. anyone can convert these to G2F/G2M? https://sharecg.com/v/92621/browse/21/DAZ-Studio/FaceShifter-For-Genesis-8-Female
 
 # Credits

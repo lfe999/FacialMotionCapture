@@ -11,9 +11,7 @@ namespace LFE.FacialMotionCapture.Main {
 	public class Plugin : MVRScript {
 
         private const string SAVE_FILE = "Saves\\lfe_facialmotioncapture.json";
-
         private IFacialCaptureClient client;
-        private Queue<BlendShapeReceivedEventArgs> changes = new Queue<BlendShapeReceivedEventArgs>();
 
         public Atom SelectedPerson;
         public FreeControllerV3 EyeController;
@@ -21,12 +19,14 @@ namespace LFE.FacialMotionCapture.Main {
 
         public SimpleJSON.JSONClass Settings;
 
-		public override void Init() {
-			// TODO: create the UI
-		}
+        public List<MorphFrame> RecordedFrames = new List<MorphFrame>();
+        public Dictionary<int, BlendShapeReceivedEventArgs> ShapeEventsForFrame = new Dictionary<int, BlendShapeReceivedEventArgs>();
 
-		// Start is called once before Update or FixedUpdate is called and after Init()
 		void Start() {
+            RecordedFrames = new List<MorphFrame>();
+            recording = false;
+            recordedFrameId = 0;
+
             if (containingAtom && containingAtom.type == "Person")
             {
                 SelectedPerson = containingAtom;
@@ -41,74 +41,62 @@ namespace LFE.FacialMotionCapture.Main {
             }
 
             InitPluginUI();
-
 		}
 
-		// Update is called with each rendered frame by Unity
-
-        private IEnumerable<BlendShapeReceivedEventArgs> AllUpdates(bool latestOnly = false) {
-            List<BlendShapeReceivedEventArgs> shapes = new List<BlendShapeReceivedEventArgs>();
-            lock(changes){
-                shapes = changes.ToList();
-                changes.Clear();
-            }
-
-            if(latestOnly) {
-                var seen = new HashSet<int>();
-                for(var i = shapes.Count - 1; i > 0; i--) {
-                    var item = shapes[i];
-                    if(seen.Contains(item.Shape.Id)) {
-                        continue;
-                    }
-                    seen.Add(item.Shape.Id);
-                    yield return item;
-                }
-                yield break;
-            }
-            else {
-                foreach(var item in shapes) {
-                    yield return item;
-                }
-            }
-
-        }
-
-        private void RunMorphChange(BlendShapeReceivedEventArgs item) {
+        private DAZMorph RunMorphChange(BlendShapeReceivedEventArgs item) {
             var morph = GetMorph(MapShapeToMorph(item.Shape));
             UIDynamicSlider sliderUI;
             if(morph != null) {
-                // this will let you set a value outside of the range
-                // morph.SetValue(item.Value * shapeMultipliers[item.Shape.Id].val);
+                // update the morph
                 morph.morphValueAdjustLimits = item.Value * shapeMultipliers[item.Shape.Id].val;
-
-                // these keep you within the morph range??
-                // morph.jsonFloat.SetVal(item.Value * shapeMultipliers[item.Shape.Id].val);
-                // morph.jsonFloat.val = item.Value * shapeMultipliers[item.Shape.Id].val;
-                // morph.jsonFloat.valNoCallback = item.Value * shapeMultipliers[item.Shape.Id].val;
 
                 // update slider color in the UI
                 shapeMultiplierSliders.TryGetValue(item.Shape.Id, out sliderUI);
                 if(sliderUI != null) {
                     sliderUI.slider.image.color = Color.Lerp(Color.white, Color.green, Math.Abs(item.Value));
                 }
+                return morph;
             }
             else {
                 shapeMultiplierSliders.TryGetValue(item.Shape.Id, out sliderUI);
                 if(sliderUI != null) {
                     sliderUI.slider.image.color = Color.Lerp(Color.white, Color.black, Math.Abs(item.Value));
                 }
+                return null;
             }
         }
 
-		void Update() {
-            // try {
-            //     foreach(var item in AllUpdates(latestOnly: false)) {
-            //         RunMorphChange(item);
-            //     }
-            // }
-            // catch(Exception e){
-            //     SuperController.LogError(e.ToString(), false);
-            // }
+        int recordedFrameId = 0;
+        bool recording = false;
+        float firstDeltaTime = 0;
+		void FixedUpdate() {
+            Dictionary<int, BlendShapeReceivedEventArgs> changes;
+            lock(ShapeEventsForFrame) {
+                changes = new Dictionary<int, BlendShapeReceivedEventArgs>(ShapeEventsForFrame);
+                ShapeEventsForFrame.Clear();
+            }
+
+            foreach(var change in changes) {
+                var changedMorph = RunMorphChange(change.Value);
+                if(recording) {
+                    if(changedMorph != null) {
+                        lock(RecordedFrames) {
+                            if(RecordedFrames.Count == 0) {
+                                firstDeltaTime = Time.deltaTime;
+                            }
+                            RecordedFrames.Add(new MorphFrame {
+                                Number = recordedFrameId + 1,
+                                MorphName = changedMorph.displayName,
+                                Value = changedMorph.morphValue
+                            });
+                        }
+                    }
+                }
+            }
+
+            if(recording) {
+                recordedFrameId++;
+            }
 		}
 
 		void OnDestroy() {
@@ -119,6 +107,82 @@ namespace LFE.FacialMotionCapture.Main {
         // -------------------------------------------------------------
         // -------------------------------------------------------------
         // -------------------------------------------------------------
+
+        private string SaveAndClearRecording() {
+            recording = false;
+
+            string recordingId = DateTime.Now.ToString("yyMMddTHHmmss");
+
+            var savedir = "Saves\\animations\\mocap";
+            var savefile = $"{savedir}\\face_{recordingId}.json";
+            if(!MVR.FileManagementSecure.FileManagerSecure.DirectoryExists(savedir)) {
+                MVR.FileManagementSecure.FileManagerSecure.CreateDirectory(savedir);
+            }
+
+            var framesByMorph = new Dictionary<string, List<MorphFrame>>();
+            int maxFrameNumber = 0;
+            float frameDuration = firstDeltaTime;
+            lock(RecordedFrames) {
+                recordedFrameId = 0;
+
+                if(RecordedFrames.Count <= 0) {
+                    return null;
+                }
+
+                maxFrameNumber = RecordedFrames.Max(f => f.Number);
+
+                framesByMorph = RecordedFrames
+                    .GroupBy(x => x.MorphName)
+                    .ToDictionary(x => x.Key, x => x.ToList());
+
+                RecordedFrames.Clear();
+            }
+
+            var animation = new SimpleJSON.JSONClass();
+            animation["Speed"] = "1";
+            animation["InterpolationTimeout"] = "0.25"; // ??
+            animation["InterpolationSpeed"] = "1"; // ??
+            animation["AtomType"] = "Person";
+            animation["Clips"] = new SimpleJSON.JSONArray();
+
+            var animationClip = new SimpleJSON.JSONClass();
+            animationClip["AnimationName"] = $"Mocap - {recordingId}";
+            animationClip["AnimationLength"] = (maxFrameNumber * frameDuration).ToString();
+            animationClip["BlendDuration"] = "0.25"; // ??
+            animationClip["Loop"] = "1";
+            animationClip["Transition"] = "0"; // ??
+            animationClip["EnsureQuaternionContinuity"] = "1";
+            animationClip["Controllers"] = new SimpleJSON.JSONArray();
+            animationClip["FloatParams"] = new SimpleJSON.JSONArray();
+
+            foreach(var morphFrames in framesByMorph) {
+                var morphName = morphFrames.Key;
+                var frames = morphFrames.Value;
+
+                var floatParam = new SimpleJSON.JSONClass();
+                floatParam["Storable"] = "geometry";
+                floatParam["Name"] = morphName;
+                floatParam["Value"] = new SimpleJSON.JSONArray();
+                foreach(var frame in frames) {
+                    var jsonEntry = new SimpleJSON.JSONClass();
+                    jsonEntry["t"] = ((frame.Number - 1) * frameDuration).ToString(); // consider each frame as 0.1
+                    jsonEntry["v"] = frame.Value.ToString();
+                    jsonEntry["ti"] = "0";
+                    jsonEntry["to"] = "0";
+                    jsonEntry["c"] = "0";
+
+                    floatParam["Value"].Add(jsonEntry);
+                }
+
+                animationClip["FloatParams"].Add(floatParam);
+            }
+
+            animation["Clips"].Add(animationClip);
+
+            SuperController.singleton.SaveJSON(animation, savefile);
+
+            return savefile;
+        }
 
         private void SettingsSave(SimpleJSON.JSONClass settings) {
             SuperController.singleton.SaveJSON(settings, SAVE_FILE);
@@ -139,6 +203,8 @@ namespace LFE.FacialMotionCapture.Main {
 
         private Dictionary<int, JSONStorableFloat> shapeMultipliers = new Dictionary<int, JSONStorableFloat>();
         private Dictionary<int, UIDynamicSlider> shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
+        private UIDynamicButton recordButton;
+        private UIDynamicTextField recordMessage;
         private void InitPluginUI() {
 
             string ipAddress = "Enter IP for Live Face app";
@@ -179,6 +245,7 @@ namespace LFE.FacialMotionCapture.Main {
                         client = null;
                         serverConnectUi.label = "Connect to LIVE Face";
                         serverConnectUi.buttonColor = Color.green;
+                        StopRecording();
                     }
                     catch(Exception e) {
                         SuperController.LogError(e.ToString());
@@ -192,10 +259,9 @@ namespace LFE.FacialMotionCapture.Main {
                         client?.Disconnect();
                         client = new RealIllusionLiveFaceClient(ipAddressStorable.val, this);
                         client.BlendShapeReceived += (sender, args) => {
-                            RunMorphChange(args);
-                            // lock(changes) {
-                            //     changes.Enqueue(args);
-                            // }
+                            lock(ShapeEventsForFrame) {
+                                ShapeEventsForFrame[args.Shape.Id] = args;
+                            }
                         };
 
                         client.Connect();
@@ -225,10 +291,48 @@ namespace LFE.FacialMotionCapture.Main {
                     }
                 }
             });
+        }
 
+        private void StopRecording() {
+            recording = false;
+            var saved = SaveAndClearRecording();
+            if(saved != null && recordMessage != null) {
+                recordMessage.text = $"Saved {saved}";
+            }
+
+            if(recordButton != null) {
+                recordButton.label = "Start Recording";
+            }
+        }
+
+        private void StartRecording() {
+            recording = true;
+            if(recordButton != null) {
+                recordButton.label = "Stop Recording";
+            }
+            if(recordMessage != null) {
+                recordMessage.text = "recording...";
+            }
         }
 
         private void CreateMorphMultipliers() {
+
+            recordMessage = CreateTextField(new JSONStorableString("recordMessage", ""));
+            recordMessage.SetLayoutHeight(75);
+
+            recordButton = CreateButton("Start Recording", rightSide: true);
+            recordButton.height = 75;
+            recordButton.button.onClick.AddListener(() =>
+            {
+                if(recording) {
+                    StopRecording();
+                }
+                else {
+                    StartRecording();
+                }
+            });
+
+
             foreach(var name in CBlendShape.Names()) {
                 var shapeId = CBlendShape.NameToId(name) ?? 0;
                 var multiplier = 1.0f;
@@ -249,6 +353,9 @@ namespace LFE.FacialMotionCapture.Main {
         }
 
         private void DestroyMorphMultipliers() {
+            RemoveTextField(recordMessage);
+            RemoveButton(recordButton);
+
             foreach(var item in shapeMultiplierSliders){
                 RemoveSlider(item.Value);
             }
@@ -316,5 +423,11 @@ namespace LFE.FacialMotionCapture.Main {
 
             return dcs.morphsControlUI;
         }
+    }
+
+    public class MorphFrame {
+        public int Number { get; set; }
+        public string MorphName { get; set; }
+        public float Value { get; set; }
     }
 }

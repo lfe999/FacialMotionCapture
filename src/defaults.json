@@ -3,23 +3,23 @@
     "mappings": {
         "Brow Down Left": {
             "morph": "Brow Down Left",
-            "strength": 1
+            "strength": 3
         },
         "Brow Down Right": {
             "morph": "Brow Down Right",
-            "strength": 1
+            "strength": 3
         },
         "Brow Inner Up": {
             "morph": "Brow Inner Up",
-            "strength": 1
+            "strength": 1.5
         },
         "Brow Outer Up Left": {
             "morph": "Brow Outer Up Left",
-            "strength": 1
+            "strength": 0.2
         },
         "Brow Outer Up Right": {
             "morph": "Brow Outer Up Right",
-            "strength": 1
+            "strength": 0.2
         },
         "Cheek Puff": {
             "morph": "Cheeks Balloon",
@@ -27,11 +27,11 @@
         },
         "Cheek Squint Left": {
             "morph": "Cheek Flex Left",
-            "strength": 1
+            "strength": 7
         },
         "Cheek Squint Right": {
             "morph": "Cheek Flex Right",
-            "strength": 1
+            "strength": 7
         },
         "Eye Blink Left": {
             "morph": "Eyes Closed Left",
@@ -83,7 +83,7 @@
         },
         "Eye Wide Left": {
             "morph": "Eyes Open",
-            "strength": 2.3
+            "strength": 1.5
         },
         "Eye Wide Right": {
             "morph": "",
@@ -111,11 +111,11 @@
         },
         "Mouth Dimple Left": {
             "morph": "Cheeks Dimple Crease Left",
-            "strength": 1
+            "strength": 3
         },
         "Mouth Dimple Right": {
             "morph": "Cheeks Dimple Crease Right",
-            "strength": 1
+            "strength": 3
         },
         "Mouth Frown Left": {
             "morph": "Mouth Frown",
@@ -131,7 +131,7 @@
         },
         "Mouth Left": {
             "morph": "Mouth Side-Side Left",
-            "strength": 1
+            "strength": 2
         },
         "Mouth Lower Down Left": {
             "morph": "",
@@ -155,7 +155,7 @@
         },
         "Mouth Right": {
             "morph": "Mouth Side-Side Right",
-            "strength": 1
+            "strength": 2
         },
         "Mouth Roll Lower": {
             "morph": "Lip Bottom In",
@@ -190,8 +190,8 @@
             "strength": 1
         },
         "Mouth Tongue Out": {
-            "morph": "Tongue In-Out",
-            "strength": -1
+            "morph": "Tongue Length",
+            "strength": 0.15
         },
         "Mouth Upper Left": {
             "morph": "",
