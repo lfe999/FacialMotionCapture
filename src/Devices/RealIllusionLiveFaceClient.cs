@@ -20,6 +20,7 @@ namespace LFE.FacialMotionCapture.Devices {
         private Plugin _plugin;
 
         private const int TCP_PORT = 999;
+        private const int TIMEOUT_MILLISECONDS = 1000;
 
         public RealIllusionLiveFaceClient(string ip, Plugin plugin)
         {
@@ -31,7 +32,18 @@ namespace LFE.FacialMotionCapture.Devices {
         }
 
         public IFacialCaptureClient Connect() {
-            _socket.Connect(_ipEndPoint);
+            // This is easier
+            //   _socket.Connect(_ipEndPoint)
+            // but this lets us control the connection timeout (connected host has failed to respond)
+            var connectionResult = _socket.BeginConnect(_ipEndPoint, null, null);
+            var waited = connectionResult.AsyncWaitHandle.WaitOne(TIMEOUT_MILLISECONDS, true);
+            if(_socket.Connected) {
+                _socket.EndConnect(connectionResult);
+            }
+            else {
+                Disconnect();
+                throw new ApplicationException("connected host has failed to respond");
+            }
 
             // send header (logo) 512x132 px
             string iconPath = _plugin.GetPluginPath() + "Devices/VamLogo.png";
@@ -100,9 +112,12 @@ namespace LFE.FacialMotionCapture.Devices {
         }
 
         public IFacialCaptureClient Disconnect() {
-            _listenerThread?.Abort();
-            _socket?.Shutdown(SocketShutdown.Both);
-            _socket?.Close();
+            try {
+                _listenerThread?.Abort();
+                _socket?.Shutdown(SocketShutdown.Both);
+                _socket?.Close();
+            } catch {}
+
             return this;
         }
 

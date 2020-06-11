@@ -272,6 +272,8 @@ namespace LFE.FacialMotionCapture.Main {
                     }
                     catch(FormatException ex) {
                         SuperController.LogError($"{ex.Message}: {ipAddressStorable.val}");
+                        client?.Disconnect();
+                        client = null;
                         DestroyMorphMultipliers();
                         return;
                     }
@@ -286,6 +288,7 @@ namespace LFE.FacialMotionCapture.Main {
                             SuperController.LogError(e.ToString());
                         }
                         client?.Disconnect();
+                        client = null;
                         DestroyMorphMultipliers();
                         return;
                     }
