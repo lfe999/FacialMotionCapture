@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace LFE.FacialMotionCapture.Models
 {
@@ -57,7 +58,70 @@ namespace LFE.FacialMotionCapture.Models
         public const int MOUTH_STRETCH_RIGHT = 50;
         public const int MOUTH_TONGUE_OUT = 51;
 
-        private static readonly Dictionary<int, string> _nameToId = new Dictionary<int, string>()
+        private static readonly Dictionary<int, string> _idToGroup = new Dictionary<int, string>()
+        {
+            { CBlendShape.BROW_DOWN_LEFT, "Brows" },
+            { CBlendShape.BROW_DOWN_RIGHT, "Brows" },
+            { CBlendShape.BROW_INNER_UP, "Brows" },
+            { CBlendShape.BROW_OUTER_UP_LEFT, "Brows" },
+            { CBlendShape.BROW_OUTER_UP_RIGHT, "Brows" },
+            { CBlendShape.CHEEK_PUFF, "Cheeks" },
+            { CBlendShape.CHEEK_SQUINT_LEFT, "Cheeks" },
+            { CBlendShape.CHEEK_SQUINT_RIGHT, "Cheeks" },
+            { CBlendShape.EYE_BLINK_LEFT, "Eyes" },
+            { CBlendShape.EYE_BLINK_RIGHT, "Eyes" },
+            { CBlendShape.EYE_SQUINT_LEFT, "Eyes" },
+            { CBlendShape.EYE_SQUINT_RIGHT, "Eyes" },
+            { CBlendShape.EYE_WIDE_LEFT, "Eyes" },
+            { CBlendShape.EYE_WIDE_RIGHT, "Eyes" },
+            { CBlendShape.EYE_LOOK_DOWN_LEFT, "Looking" },
+            { CBlendShape.EYE_LOOK_DOWN_RIGHT, "Looking" },
+            { CBlendShape.EYE_LOOK_IN_LEFT, "Looking" },
+            { CBlendShape.EYE_LOOK_IN_RIGHT, "Looking" },
+            { CBlendShape.EYE_LOOK_OUT_LEFT, "Looking" },
+            { CBlendShape.EYE_LOOK_OUT_RIGHT, "Looking" },
+            { CBlendShape.EYE_LOOK_UP_LEFT, "Looking" },
+            { CBlendShape.EYE_LOOK_UP_RIGHT, "Looking" },
+            { CBlendShape.JAW_FORWARD, "Jaw" },
+            { CBlendShape.JAW_LEFT, "Jaw" },
+            { CBlendShape.JAW_OPEN, "Jaw" },
+            { CBlendShape.JAW_RIGHT, "Jaw" },
+            { CBlendShape.MOUTH_CLOSE, "Mouth" },
+            { CBlendShape.MOUTH_DIMPLE_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_DIMPLE_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_FROWN_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_FROWN_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_FUNNEL, "Mouth" },
+            { CBlendShape.MOUTH_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_LOWER_DOWN_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_LOWER_DOWN_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_PRESS_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_PRESS_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_PUCKER, "Mouth" },
+            { CBlendShape.MOUTH_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_ROLL_LOWER, "Mouth" },
+            { CBlendShape.MOUTH_ROLL_UPPER, "Mouth" },
+            { CBlendShape.MOUTH_SHRUG_LOWER, "Mouth" },
+            { CBlendShape.MOUTH_SHRUG_UPPER, "Mouth" },
+            { CBlendShape.MOUTH_SMILE_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_SMILE_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_STRETCH_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_STRETCH_RIGHT, "Mouth" },
+            { CBlendShape.MOUTH_UPPER_LEFT, "Mouth" },
+            { CBlendShape.MOUTH_UPPER_RIGHT, "Mouth" },
+            { CBlendShape.NOSE_SNEER_LEFT, "Nose" },
+            { CBlendShape.NOSE_SNEER_RIGHT, "Nose" },
+            { CBlendShape.MOUTH_TONGUE_OUT, "Tongue" },
+        };
+
+        private static readonly Dictionary<string, List<int>> _groupToIds = _idToGroup
+            .GroupBy(p => p.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(pp => pp.Key).ToList()
+            );
+
+        private static readonly Dictionary<int, string> _idToName = new Dictionary<int, string>()
         {
             { CBlendShape.BROW_DOWN_LEFT, "Brow Down Left" },
             { CBlendShape.BROW_DOWN_RIGHT, "Brow Down Right" },
@@ -113,26 +177,40 @@ namespace LFE.FacialMotionCapture.Models
             { CBlendShape.NOSE_SNEER_RIGHT, "Nose Sneer Right" },
         };
 
+        private static readonly Dictionary<string, int> _nameToId = _idToName
+            .GroupBy(p => p.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(pp => pp.Key).FirstOrDefault()
+            );
+
         public static string IdToName(int i)
         {
-            return _nameToId[i] ?? $"Blendshape {i}";
+            return _idToName[i] ?? $"Blendshape {i}";
         }
 
         public static int? NameToId(string name)
         {
-            foreach(var item in _nameToId)
-            {
-                if(item.Value.Equals(name))
-                {
-                    return item.Key;
-                }
-            }
-            return null;
+            return _nameToId[name];
         }
 
         public static IEnumerable<string> Names()
         {
-            return _nameToId.Values;
+            return _nameToId.Keys;
         }
+
+        public static string IdToGroup(int i) {
+            return _idToGroup[i] ?? $"Other";
+        }
+
+        public static IEnumerable<int> IdsInGroup(string group) {
+            return _groupToIds[group] ?? Enumerable.Empty<int>();
+        }
+
+        public static IEnumerable<string> Groups()
+        {
+            return _groupToIds.Keys;
+        }
+
     }
 }

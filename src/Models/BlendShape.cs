@@ -13,6 +13,12 @@
             }
         }
 
+        public string Group {
+            get {
+                return CBlendShape.IdToGroup(Id);
+            }
+        }
+
         public BlendShape(int id)
         {
             Id = id;
