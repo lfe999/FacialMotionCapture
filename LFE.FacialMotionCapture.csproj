@@ -107,7 +107,7 @@
     <Compile Include="src\Extensions\MVRScriptExtensions.cs" />
     <Compile Include="src\Models\BlendShape.cs" />
     <Compile Include="src\Models\CBlendShape.cs" />
-    <Compile Include="src\Models\MorphFrame.cs" />
+    <Compile Include="src\Models\FloatParamFrame.cs" />
 
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -21,11 +21,13 @@
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\AtomExtensions.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\ComponentExtensions.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\MVRScriptExtensions.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\EyeGazeControl_ONLY.cslist",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\FacialMotionCapture.cslist",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Main\\EyeGazeControl.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Main\\Plugin.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\BlendShape.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\CBlendShape.cs",
-      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\MorphFrame.cs"
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\FloatParamFrame.cs"
    ], 
    "dependencies" : { 
    }

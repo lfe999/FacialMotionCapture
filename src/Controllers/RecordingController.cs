@@ -9,8 +9,9 @@ namespace LFE.FacialMotionCapture.Controllers {
     public class RecordingController {
         private int _currentFrameId = 0;
         private float _initialDeltaTime = 0;
-        private List<MorphFrame> _recordedFrames = new List<MorphFrame>();
+        private List<FloatParamFrame> _recordedFrames = new List<FloatParamFrame>();
 
+        public Plugin Plugin { get; private set; }
         public bool IsRecording { get; private set; }
         public string DefaultSettingsFile {
             get {
@@ -19,8 +20,9 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
         }
 
-        public RecordingController()
+        public RecordingController(Plugin plugin)
         {
+            Plugin = plugin;
             Reset();
         }
 
@@ -28,7 +30,7 @@ namespace LFE.FacialMotionCapture.Controllers {
             IsRecording = false;
             _initialDeltaTime = 0;
             _currentFrameId = 0;
-            _recordedFrames = new List<MorphFrame>();
+            _recordedFrames = new List<FloatParamFrame>();
         }
 
         public void Start() {
@@ -45,9 +47,28 @@ namespace LFE.FacialMotionCapture.Controllers {
                 if(_currentFrameId == 0) {
                     _initialDeltaTime = Time.deltaTime;
                 }
-                _recordedFrames.Add(new MorphFrame {
+                _recordedFrames.Add(new FloatParamFrame {
+                    StorableName = "geometry",
                     Number = _currentFrameId + 1,
-                    MorphName = morphName,
+                    Name = morphName,
+                    Value = value
+                });
+            }
+        }
+
+        public void RecordEyeValue(string eyeParamName, float value) {
+            if(!Plugin.EyePluginInstalled()) {
+                return;
+            }
+
+            lock(_recordedFrames) {
+                if(_currentFrameId == 0) {
+                    _initialDeltaTime = Time.deltaTime;
+                }
+                _recordedFrames.Add(new FloatParamFrame {
+                    StorableName = Plugin.EyePlugin.name,
+                    Number = _currentFrameId + 1,
+                    Name = eyeParamName,
                     Value = value
                 });
             }
@@ -76,17 +97,18 @@ namespace LFE.FacialMotionCapture.Controllers {
         public SimpleJSON.JSONClass GetTimelineAnimation() {
 
             // snapshot the current recorded frames
-            var framesByMorph = new Dictionary<string, List<MorphFrame>>();
+            var groupedFrames = new Dictionary<string, List<FloatParamFrame>>();
             int maxFrameNumber = 0;
             float frameDuration = _initialDeltaTime;
             lock(_recordedFrames) {
                 maxFrameNumber = _recordedFrames.Max(f => f.Number);
-                framesByMorph = _recordedFrames
-                    .GroupBy(x => x.MorphName)
+                // group frames by (storable,name) -> values[]
+                groupedFrames = _recordedFrames
+                    .GroupBy(x => $"{x.StorableName}_{x.Name}")
                     .ToDictionary(x => x.Key, x => x.ToList());
             }
 
-            if(framesByMorph.Count == 0) {
+            if(groupedFrames.Count == 0) {
                 return null;
             }
 
@@ -109,13 +131,14 @@ namespace LFE.FacialMotionCapture.Controllers {
             animationClip["Controllers"] = new SimpleJSON.JSONArray();
             animationClip["FloatParams"] = new SimpleJSON.JSONArray();
 
-            foreach(var morphFrames in framesByMorph) {
-                var morphName = morphFrames.Key;
+            foreach(var morphFrames in groupedFrames) {
+                var storable = morphFrames.Value.First().StorableName;
+                var name = morphFrames.Value.First().Name;
                 var frames = morphFrames.Value;
 
                 var floatParam = new SimpleJSON.JSONClass();
-                floatParam["Storable"] = "geometry";
-                floatParam["Name"] = morphName;
+                floatParam["Storable"] = storable;
+                floatParam["Name"] = name;
                 floatParam["Value"] = new SimpleJSON.JSONArray();
                 foreach(var frame in frames) {
                     var jsonEntry = new SimpleJSON.JSONClass();

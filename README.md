@@ -69,7 +69,6 @@ Many auto expressions will get in the way of motion capture.  Try playing around
 
 # TODO
 
-- add support for eye movement
 - easier way for you to say what morph is used for each phone change that comes in
 - find morphs better suited for motion capture. anyone can convert these to G2F/G2M? https://sharecg.com/v/92621/browse/21/DAZ-Studio/FaceShifter-For-Genesis-8-Female
 

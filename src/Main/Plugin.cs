@@ -29,7 +29,7 @@ namespace LFE.FacialMotionCapture.Main {
 
             DeviceController = new DeviceController(this, null);
             SettingsController = new SettingsController(this);
-            RecordingController = new RecordingController();
+            RecordingController = new RecordingController(this);
             UIController = new UIController(this);
 		}
 
@@ -50,6 +50,11 @@ namespace LFE.FacialMotionCapture.Main {
 
                 if(changedMorph == null) {
                     var changedEye = RunEyeChange(change.Value);
+                    if(changedEye != null) {
+                        if(RecordingController.IsRecording) {
+                            RecordingController.RecordEyeValue(changedEye.name, changedEye.val);
+                        }
+                    }
                 }
             }
 
@@ -95,7 +100,7 @@ namespace LFE.FacialMotionCapture.Main {
             get {
                 if(_eyePluginChecked == false && _eyePlugin == null) {
                     _eyePlugin = containingAtom.GetStorableIDs()
-                        .Where(id => id.EndsWith("_LFE.EyeGazeMover.Plugin"))
+                        .Where(id => id.EndsWith("_LFE.EyeGazeControl"))
                         .Select(id => containingAtom.GetStorableByID(id))
                         .FirstOrDefault();
                     _eyePluginChecked = true;

@@ -1,4 +1,5 @@
 Main/Plugin.cs
+Main/EyeGazeControl.cs
 Controllers/DeviceController.cs
 Controllers/RecordingController.cs
 Controllers/SettingsController.cs
@@ -11,4 +12,4 @@ Extensions/ComponentExtensions.cs
 Extensions/MVRScriptExtensions.cs
 Models/BlendShape.cs
 Models/CBlendShape.cs
-Models/MorphFrame.cs
+Models/FloatParamFrame.cs
