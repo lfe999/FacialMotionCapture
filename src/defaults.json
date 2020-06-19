@@ -166,8 +166,8 @@
             "strength": 1
         },
         "Mouth Shrug Lower": {
-            "morph": "Lip Bottom Out",
-            "strength": 1
+            "morph": "Lip Bottom Up",
+            "strength": 0.5
         },
         "Mouth Shrug Upper": {
             "morph": "Lip Top Up",

@@ -95,11 +95,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Main\Plugin.cs" />
+    <Compile Include="src\Controllers\DeviceController.cs" />
+    <Compile Include="src\Controllers\RecordingController.cs" />
+    <Compile Include="src\Controllers\SettingsController.cs" />
+    <Compile Include="src\Controllers\UIController.cs" />
     <Compile Include="src\Devices\BlendShapeReceivedEventArgs.cs" />
     <Compile Include="src\Devices\IFacialCaptureClient.cs" />
     <Compile Include="src\Devices\RealIllusionLiveFaceClient.cs" />
+    <Compile Include="src\Extensions\AtomExtensions.cs" />
+    <Compile Include="src\Extensions\ComponentExtensions.cs" />
+    <Compile Include="src\Extensions\MVRScriptExtensions.cs" />
     <Compile Include="src\Models\BlendShape.cs" />
     <Compile Include="src\Models\CBlendShape.cs" />
+    <Compile Include="src\Models\MorphFrame.cs" />
 
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

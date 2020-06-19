@@ -1,6 +1,14 @@
 Main/Plugin.cs
+Controllers/DeviceController.cs
+Controllers/RecordingController.cs
+Controllers/SettingsController.cs
+Controllers/UIController.cs
 Devices/BlendShapeReceivedEventArgs.cs
 Devices/IFacialCaptureClient.cs
 Devices/RealIllusionLiveFaceClient.cs
+Extensions/AtomExtensions.cs
+Extensions/ComponentExtensions.cs
+Extensions/MVRScriptExtensions.cs
 Models/BlendShape.cs
 Models/CBlendShape.cs
+Models/MorphFrame.cs

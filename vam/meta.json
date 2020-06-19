@@ -9,14 +9,23 @@
    "promotionalLink" : "https://github.com/lfe999/FacialMotionCapture",
    "programVersion" : "1.19.2.2", 
    "contentList" : [ 
-      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\FacialMotionCapture.cslist",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\defaults.json",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Controllers\\DeviceController.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Controllers\\RecordingController.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Controllers\\SettingsController.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Controllers\\UIController.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Devices\\BlendShapeReceivedEventArgs.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Devices\\IFacialCaptureClient.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Devices\\RealIllusionLiveFaceClient.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Devices\\VamLogo.png",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\AtomExtensions.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\ComponentExtensions.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Extensions\\MVRScriptExtensions.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\FacialMotionCapture.cslist",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Main\\Plugin.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\BlendShape.cs",
-      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\CBlendShape.cs"
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\CBlendShape.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\MorphFrame.cs"
    ], 
    "dependencies" : { 
    }
