@@ -332,7 +332,7 @@ namespace LFE.FacialMotionCapture.Controllers {
         }
 
         public bool IsUiActive() {
-            return _targetValuesTextField.isActiveAndEnabled;
+            return _serverConnectUi?.isActiveAndEnabled ?? false;
         }
 
         private UIDynamicSlider tempSliderUI;
