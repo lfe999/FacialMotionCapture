@@ -23,10 +23,9 @@ namespace LFE.FacialMotionCapture.Devices {
         private const int TCP_PORT = 999;
         private const int TIMEOUT_MILLISECONDS = 1000;
 
-        public RealIllusionLiveFaceClient(string ip, Plugin plugin)
+        public RealIllusionLiveFaceClient(IPAddress ipAddress, Plugin plugin)
         {
             _plugin = plugin;
-            var ipAddress = IPAddress.Parse(ip);
             _ipEndPoint = new IPEndPoint(ipAddress, TCP_PORT);
             _socket = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             _socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);

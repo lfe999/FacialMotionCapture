@@ -4,12 +4,14 @@ Controllers/DeviceController.cs
 Controllers/RecordingController.cs
 Controllers/SettingsController.cs
 Controllers/UIController.cs
+Devices/BannaflakFaceCapClient.cs
 Devices/BlendShapeReceivedEventArgs.cs
 Devices/IFacialCaptureClient.cs
 Devices/RealIllusionLiveFaceClient.cs
 Extensions/AtomExtensions.cs
 Extensions/ComponentExtensions.cs
 Extensions/MVRScriptExtensions.cs
+Extensions/StringExtensions.cs
 Models/BlendShape.cs
 Models/CBlendShape.cs
 Models/FloatParamFrame.cs

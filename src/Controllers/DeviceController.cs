@@ -1,11 +1,24 @@
 using LFE.FacialMotionCapture.Main;
 using LFE.FacialMotionCapture.Devices;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace LFE.FacialMotionCapture.Controllers {
     public class DeviceController {
 
         private Dictionary<int, BlendShapeReceivedEventArgs> _shapeEventsForFrame = new Dictionary<int, BlendShapeReceivedEventArgs>();
+
+        public List<IPEndPoint> IPEndPoints {
+            get {
+                return Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                    .Where(i => i.AddressFamily == AddressFamily.InterNetwork)
+                    .Select(ip => new IPEndPoint(ip, 8069))
+                    .Reverse()
+                    .ToList();
+            }
+        }
 
         public Plugin Plugin { get; private set; }
         public IFacialCaptureClient Client { get; private set; }

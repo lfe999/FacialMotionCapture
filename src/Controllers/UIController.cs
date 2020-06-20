@@ -5,16 +5,20 @@ using LFE.FacialMotionCapture.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace LFE.FacialMotionCapture.Controllers {
     public class UIController {
+
+        private const string DEVICE_FACECAP = "Face Cap (iOS)";
+        private const string DEVICE_LIVEFACE = "LIVE Face (iOS)";
+
         private List<UIDynamic> groupUiElements = new List<UIDynamic>();
         private Dictionary<int, UIDynamicSlider> shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
         private UIDynamicToggle recordButton;
         private UIDynamicTextField recordMessage;
-        private UIDynamicTextField _ipAddress;
 
 
         public Plugin Plugin { get; private set; }
@@ -22,14 +26,30 @@ namespace LFE.FacialMotionCapture.Controllers {
         public JSONStorableBool StorableIsRecording;
         public Dictionary<string, JSONStorableBool> StorableIsGroupEnabled = new Dictionary<string, JSONStorableBool>();
         public Dictionary<int, JSONStorableFloat> StorableBlendShapeStrength = new Dictionary<int, JSONStorableFloat>();
+        public JSONStorableStringChooser StorableDeviceType;
+        public JSONStorableStringChooser StorableServerIp;
+        public JSONStorableString StorableClientIp;
         public UIController(Plugin plugin)
         {
             Plugin = plugin;
             InitializeStorables();
-            InitPluginUI();
+            RenderUI();
         }
 
         private void InitializeStorables() {
+            var clients = new List<string> {
+                "",
+                DEVICE_LIVEFACE,
+                DEVICE_FACECAP
+            };
+            StorableDeviceType = new JSONStorableStringChooser("Device", clients, Plugin.SettingsController.GetDevice() ?? "", "Choose Device");
+
+            var ips = Plugin.DeviceController.IPEndPoints.Select(x => x.ToString()).ToList();
+            StorableServerIp = new JSONStorableStringChooser("Server IP", ips, Plugin.SettingsController.GetLocalServerIpAddress() ?? "", "Server IP");
+
+            var ipAddress = string.IsNullOrEmpty(Plugin.SettingsController.GetIpAddress()) ? "Enter IP address" : Plugin.SettingsController.GetIpAddress();
+            StorableClientIp = new JSONStorableString("IP Address", ipAddress);
+
             StorableRecordingMessage = new JSONStorableString("recordMessage", "");
 
             StorableIsRecording = new JSONStorableBool("recording", false, (bool value) => {
@@ -60,66 +80,146 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
         }
 
-        private void InitPluginUI() {
+        private UIDynamicPopup _clientsChooser;
+        private UIDynamicPopup _localIpsChooser;
+        private UIDynamicTextField _targetValuesTextField;
+        private UIDynamicButton _serverConnectUi;
+        private UIDynamicTextField _instructions;
+        private void ClearUI() {
+            if(_clientsChooser != null) {
+                Plugin.RemovePopup(_clientsChooser);
+            }
+            if(_localIpsChooser != null) {
+                Plugin.RemovePopup(_localIpsChooser);
+            }
+            if(_targetValuesTextField != null) {
+                Plugin.RemoveTextField(_targetValuesTextField);
+            }
+            if(_serverConnectUi != null) {
+                Plugin.RemoveButton(_serverConnectUi);
+            }
+            if(_instructions != null) {
+                Plugin.RemoveTextField(_instructions);
+            }
 
-            var ipAddress = string.IsNullOrEmpty(Plugin.SettingsController.GetIpAddress()) ? "Enter IP for Live Face app" : Plugin.SettingsController.GetIpAddress();
-            var ipAddressStorable = new JSONStorableString("IP Address", ipAddress);
+            ClearBlendShapeUI();
+        }
 
-            // enter ip address textfield
-            var targetValuesTextField = Plugin.CreateTextField(ipAddressStorable);
-            targetValuesTextField.backgroundImage.color = Color.white;
-            targetValuesTextField.SetLayoutHeight(50);
-            var targetValuesInput = targetValuesTextField.gameObject.AddComponent<InputField>();
-            targetValuesTextField.height = 50;
-            targetValuesInput.textComponent = targetValuesTextField.UItext;
-            targetValuesInput.textComponent.fontSize = 40;
-            targetValuesInput.text = ipAddressStorable.defaultVal;
-            targetValuesInput.image = targetValuesTextField.backgroundImage;
-            targetValuesInput.onValueChanged.AddListener((string value) => {
-                ipAddressStorable.val = value;
-                Plugin.SettingsController.SetIpAddress(value);
+        private void RerenderUI() {
+            ClearUI();
+            RenderUI();
+        }
+
+        private void RenderUI() {
+            _clientsChooser = Plugin.CreatePopup(StorableDeviceType);
+            _clientsChooser.popup.onValueChangeHandlers += (string val) => {
+                Plugin.SettingsController.SetDevice(val);
                 Plugin.SettingsController.Save();
-            });
+                Plugin.DeviceController.Destroy();
+                RerenderUI();
+            };
 
-            _ipAddress = targetValuesTextField;
+            if(StorableDeviceType.val == DEVICE_FACECAP) {
+                _localIpsChooser = Plugin.CreatePopup(StorableServerIp);
+                _localIpsChooser.height = _clientsChooser.height;
+                _localIpsChooser.popup.onValueChangeHandlers += (string val) => {
+                    var ip = val.ToIPEndPoint();
+                    if(ip != null) {
+                        Plugin.SettingsController.SetLocalServerIpAddress(val);
+                        Plugin.SettingsController.Save();
+                    }
+                    Plugin.DeviceController.Destroy();
+                    RerenderUI();
+                };
+            }
+
+            if(StorableDeviceType.val == DEVICE_LIVEFACE) {
+                // enter ip address textfield
+                _targetValuesTextField = Plugin.CreateTextField(StorableClientIp);
+                _targetValuesTextField.backgroundImage.color = Color.white;
+                _targetValuesTextField.SetLayoutHeight(_clientsChooser.height);
+                var targetValuesInput = _targetValuesTextField.gameObject.AddComponent<InputField>();
+                _targetValuesTextField.height = _clientsChooser.height;
+                targetValuesInput.textComponent = _targetValuesTextField.UItext;
+                targetValuesInput.textComponent.fontSize = 40;
+                targetValuesInput.text = StorableClientIp.val;
+                targetValuesInput.image = _targetValuesTextField.backgroundImage;
+                targetValuesInput.onValueChanged.AddListener((string value) => {
+                    StorableClientIp.val = value;
+                    var ip = value.ToIPAddress();
+                    if(ip != null) {
+                        Plugin.SettingsController.SetIpAddress(value);
+                        Plugin.SettingsController.Save();
+                    }
+                });
+                targetValuesInput.onEndEdit.AddListener((string value) => {
+                    var ip = value.ToIPAddress();
+                    if(ip == null) {
+                        StorableClientIp.val = "Enter IP Address";
+                    }
+                    Plugin.DeviceController.Destroy();
+                    RerenderUI();
+                });
+            }
 
             // start/stop server button
-            var serverConnectUi = Plugin.CreateButton("Connect to LIVE Face", rightSide: true);
-            serverConnectUi.buttonColor = Color.green;
-            serverConnectUi.height = 50;
-            serverConnectUi.button.onClick.AddListener(() =>
+            var deviceConfigLooksValid =
+                (StorableDeviceType.val == DEVICE_FACECAP && StorableServerIp.val.ToIPEndPoint() != null) ||
+                (StorableDeviceType.val == DEVICE_LIVEFACE && StorableClientIp.val.ToIPAddress() != null);
+            if(deviceConfigLooksValid) {
+                var isConnected = Plugin?.DeviceController?.IsConnected() ?? false;
+                if(isConnected) {
+                    _serverConnectUi = Plugin.CreateButton(StorableDeviceType.val == DEVICE_FACECAP ? "Stop Server" : "Disconnect");
+                    _serverConnectUi.buttonColor = Color.red;
+                }
+                else {
+                    _serverConnectUi = Plugin.CreateButton(StorableDeviceType.val == DEVICE_FACECAP ? "Start Server" : "Connect");
+                    _serverConnectUi.buttonColor = Color.green;
+                }
+            }
+            else {
+                _serverConnectUi = Plugin.CreateButton(StorableDeviceType.val == DEVICE_FACECAP ? "Start Server" : "Connect");
+                _serverConnectUi.buttonColor = Color.grey;
+                _serverConnectUi.button.enabled = false;
+            }
+            _serverConnectUi.height = _clientsChooser.height;
+            _serverConnectUi.button.onClick.AddListener(() =>
             {
                 // stop the server if it is started
                 if(Plugin.DeviceController.IsConnected())
                 {
                     try {
                         Plugin.DeviceController.Destroy();
-                        serverConnectUi.label = "Connect to LIVE Face";
-                        serverConnectUi.buttonColor = Color.green;
                         StorableIsRecording.val = false;
                     }
                     catch(Exception e) {
                         SuperController.LogError(e.ToString());
                     }
-                    ClearBlendShapeUI();
+                    RerenderUI();
                 }
                 // start the server if it is not started yet
                 else
                 {
                     try {
-                        Plugin.DeviceController = new DeviceController(
-                            Plugin,
-                            new RealIllusionLiveFaceClient(ipAddressStorable.val, Plugin)
-                        );
+                        if(StorableDeviceType.val == DEVICE_FACECAP) {
+                            Plugin.DeviceController = new DeviceController(
+                                Plugin,
+                                new BannaflakFaceCapClient(StorableServerIp.val.ToIPEndPoint(), Plugin)
+                            );
+                        }
+                        else if(StorableDeviceType.val == DEVICE_LIVEFACE) {
+                            Plugin.DeviceController = new DeviceController(
+                                Plugin,
+                                new RealIllusionLiveFaceClient(StorableClientIp.val.ToIPAddress(), Plugin)
+                            );
+                        }
                         Plugin.DeviceController.Connect();
-                        serverConnectUi.label = "Disconnect";
-                        serverConnectUi.buttonColor = Color.red;
-                        CreateBlendShapeUI();
+                        RerenderUI();
                     }
                     catch(FormatException ex) {
-                        SuperController.LogError($"{ex.Message}: {ipAddressStorable.val}");
+                        SuperController.LogError($"{ex.Message}: {StorableClientIp.val}");
                         Plugin.DeviceController.Destroy();
-                        ClearBlendShapeUI();
+                        RerenderUI();
                         return;
                     }
                     catch(Exception e) {
@@ -133,22 +233,45 @@ namespace LFE.FacialMotionCapture.Controllers {
                             SuperController.LogError(e.ToString());
                         }
                         Plugin.DeviceController.Destroy();
-                        ClearBlendShapeUI();
+                        RerenderUI();
                         return;
                     }
                 }
             });
+
+            _instructions = Plugin.CreateTextField(new JSONStorableString("", ""), rightSide: true);
+            _instructions.height = (_clientsChooser.height * 3) + (10 * 3);
+            if(StorableDeviceType.val == DEVICE_FACECAP) {
+                _instructions.text =
+                    "Face Cap by BannaFlak (iOS)\n" +
+                    "https://apps.apple.com/us/app/id1373155478\n\n" +
+                    "<b>App</b>: Click 'Go Live' and 'Connect/Disconnect'\n" +
+                    "<b>VaM Plugin</b>: Click 'Start Server'\n" +
+                    "<b>App</b>: Enter IP/Port from <b>VaM Plugin</b>";
+            }
+            else if(StorableDeviceType.val == DEVICE_LIVEFACE) {
+                _instructions.text =
+                    "LIVE Face by RealIllusion (iOS)\n" +
+                    "https://apps.apple.com/us/app/id1357551209\n\n" +
+                    "<b>App</b>: Note IP address on screen\n" +
+                    "<b>VaM Plugin</b>: Enter IP from <b>App</b>\n" +
+                    "<b>VaM Plugin</b>: Click 'Connect'";
+            }
+
+            if(Plugin.DeviceController?.IsConnected() ?? false) {
+                CreateBlendShapeUI();
+            }
         }
 
         private void CreateBlendShapeUI() {
             ClearBlendShapeUI();
 
-            recordMessage = Plugin.CreateTextField(StorableRecordingMessage);
-            recordMessage.SetLayoutHeight(75);
-
-            recordButton = Plugin.CreateToggle(StorableIsRecording, rightSide: true);
+            recordButton = Plugin.CreateToggle(StorableIsRecording);
             recordButton.height = 75;
             recordButton.label = GetRecordingLabel();
+
+            recordMessage = Plugin.CreateTextField(StorableRecordingMessage, rightSide: true);
+            recordMessage.SetLayoutHeight(75);
 
             foreach(var group in CBlendShape.Groups()) {
 
@@ -204,12 +327,12 @@ namespace LFE.FacialMotionCapture.Controllers {
         }
 
         public string GetRecordingLabel() {
-            if(StorableIsRecording.val) { return "Stop Recording"; }
-            else { return "Start Recording"; }
+            if(StorableIsRecording.val) { return "Recording"; }
+            else { return "Recording"; }
         }
 
         public bool IsUiActive() {
-            return _ipAddress.isActiveAndEnabled;
+            return _targetValuesTextField.isActiveAndEnabled;
         }
 
         private UIDynamicSlider tempSliderUI;

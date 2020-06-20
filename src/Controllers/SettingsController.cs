@@ -29,6 +29,22 @@ namespace LFE.FacialMotionCapture.Controllers {
             _settings["clientIp"] = ip;
         }
 
+        public string GetLocalServerIpAddress() {
+            return _settings["serverIp"]?.Value;
+        }
+
+        public void SetLocalServerIpAddress(string ip) {
+            _settings["serverIp"] = ip;
+        }
+
+        public string GetDevice() {
+            return _settings["device"]?.Value;
+        }
+
+        public void SetDevice(string device) {
+            _settings["device"] = device;
+        }
+
         public float? GetShapeStrength(string name) {
             if(_settings["mappings"]?.AsObject[name]?.AsObject != null) {
                 return _settings["mappings"][name]["strength"].AsFloat;
