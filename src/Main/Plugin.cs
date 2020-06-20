@@ -71,6 +71,7 @@ namespace LFE.FacialMotionCapture.Main {
         public void StopRecording() {
             RecordingController.Stop();
             var saved = RecordingController.SaveTimelineAnimation();
+            RecordingController.Reset();
             if(saved != null) {
                 UIController.SetRecordingMessage($"Saved {saved}");
             }

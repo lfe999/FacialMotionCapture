@@ -30,7 +30,9 @@ namespace LFE.FacialMotionCapture.Controllers {
             IsRecording = false;
             _initialDeltaTime = 0;
             _currentFrameId = 0;
-            _recordedFrames = new List<FloatParamFrame>();
+            lock(_recordedFrames) {
+                _recordedFrames = new List<FloatParamFrame>();
+            }
         }
 
         public void Start() {
@@ -44,7 +46,7 @@ namespace LFE.FacialMotionCapture.Controllers {
 
         public void RecordMorphValue(string morphName, float value) {
             lock(_recordedFrames) {
-                if(_currentFrameId == 0) {
+                if(_initialDeltaTime == 0) {
                     _initialDeltaTime = Time.deltaTime;
                 }
                 _recordedFrames.Add(new FloatParamFrame {
@@ -62,7 +64,7 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
 
             lock(_recordedFrames) {
-                if(_currentFrameId == 0) {
+                if(_initialDeltaTime == 0) {
                     _initialDeltaTime = Time.deltaTime;
                 }
                 _recordedFrames.Add(new FloatParamFrame {
