@@ -85,7 +85,7 @@ namespace LFE.FacialMotionCapture.Main {
         }
 
         private Dictionary<string, DAZMorph> _morphNameLookup = new Dictionary<string, DAZMorph>();
-        private DAZMorph GetMorph(string name) {
+        public DAZMorph GetMorph(string name) {
             if(name == null) {
                 return null;
             }

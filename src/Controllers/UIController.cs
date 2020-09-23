@@ -60,6 +60,19 @@ namespace LFE.FacialMotionCapture.Controllers {
             // group is enabled toggles
             foreach(var groupName in CBlendShape.Groups()) {
                 StorableIsGroupEnabled[groupName] = new JSONStorableBool($"{groupName}Enabled", true, (bool value) => {
+                    var shapesInGroup = CBlendShape.IdsInGroup(groupName).ToList();
+                    foreach(var shapeId in shapesInGroup)
+                    {
+                        var shapeName = CBlendShape.IdToName(shapeId);
+                        var morphName = Plugin.SettingsController.GetShapeMorph(shapeName);
+                        var morph = Plugin.GetMorph(morphName);
+                        if(morph != null) {
+                            if(!value) {
+                                // this is being disabled, set the morph back to default
+                                morph.SetDefaultValue();
+                            }
+                        }
+                    }
                     CreateBlendShapeUI();
                 });
             }
