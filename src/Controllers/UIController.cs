@@ -63,13 +63,23 @@ namespace LFE.FacialMotionCapture.Controllers {
                     var shapesInGroup = CBlendShape.IdsInGroup(groupName).ToList();
                     foreach(var shapeId in shapesInGroup)
                     {
-                        var shapeName = CBlendShape.IdToName(shapeId);
-                        var morphName = Plugin.SettingsController.GetShapeMorph(shapeName);
-                        var morph = Plugin.GetMorph(morphName);
-                        if(morph != null) {
-                            if(!value) {
-                                // this is being disabled, set the morph back to default
-                                morph.SetDefaultValue();
+                        if(groupName == "Head Rotation") {
+                            if(Plugin.HeadController != null) {
+                                Plugin.HeadController.transform.rotation = Plugin.OriginalHeadRotation;
+                            }
+                        }
+                        else if(groupName == "Looking") {
+                            // TODO: put eyes back
+                        }
+                        else {
+                            var shapeName = CBlendShape.IdToName(shapeId);
+                            var morphName = Plugin.SettingsController.GetShapeMorph(shapeName);
+                            var morph = Plugin.GetMorph(morphName);
+                            if(morph != null) {
+                                if(!value) {
+                                    // this is being disabled, set the morph back to default
+                                    morph.SetDefaultValue();
+                                }
                             }
                         }
                     }

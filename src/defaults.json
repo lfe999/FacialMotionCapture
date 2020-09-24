@@ -107,7 +107,7 @@
         },
         "Mouth Close": {
             "morph": "Mouth Open Wide 3",
-            "strength": -0.7 
+            "strength": -0.7
         },
         "Mouth Dimple Left": {
             "morph": "Cheeks Dimple Crease Left",
@@ -208,6 +208,30 @@
         "Nose Sneer Right": {
             "morph": "",
             "strength": 1
+        },
+        "Head Left": {
+            "morph": "",
+            "strength": "0.8"
+        },
+        "Head Right": {
+            "morph": "",
+            "strength": "0.8"
+        },
+        "Head Up": {
+            "morph": "",
+            "strength": "0.6"
+        },
+        "Head Down": {
+            "morph": "",
+            "strength": "1.5"
+        },
+        "Head Tilt Left": {
+            "morph": "",
+            "strength": "1"
+        },
+        "Head Tilt Right": {
+            "morph": "",
+            "strength": "1"
         }
     }
 }

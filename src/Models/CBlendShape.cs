@@ -58,6 +58,17 @@ namespace LFE.FacialMotionCapture.Models
         public const int MOUTH_STRETCH_RIGHT = 50;
         public const int MOUTH_TONGUE_OUT = 51;
 
+
+        public const int HEAD_POSITION_X = 100;
+        public const int HEAD_POSITION_Y = 101;
+        public const int HEAD_POSITION_Z = 102;
+        public const int HEAD_ROTATION_LEFT = 103;
+        public const int HEAD_ROTATION_RIGHT = 104;
+        public const int HEAD_ROTATION_UP = 105;
+        public const int HEAD_ROTATION_DOWN = 106;
+        public const int HEAD_ROTATION_TILT_LEFT = 107;
+        public const int HEAD_ROTATION_TILT_RIGHT = 108;
+
         private static readonly Dictionary<int, string> _idToGroup = new Dictionary<int, string>()
         {
             { CBlendShape.BROW_DOWN_LEFT, "Brows" },
@@ -112,6 +123,15 @@ namespace LFE.FacialMotionCapture.Models
             { CBlendShape.NOSE_SNEER_LEFT, "Nose" },
             { CBlendShape.NOSE_SNEER_RIGHT, "Nose" },
             { CBlendShape.MOUTH_TONGUE_OUT, "Tongue" },
+            // { CBlendShape.HEAD_POSITION_X, "Head Position"},
+            // { CBlendShape.HEAD_POSITION_Y, "Head Position"},
+            // { CBlendShape.HEAD_POSITION_Z, "Head Position"},
+            { CBlendShape.HEAD_ROTATION_LEFT, "Head Rotation"},
+            { CBlendShape.HEAD_ROTATION_RIGHT, "Head Rotation"},
+            { CBlendShape.HEAD_ROTATION_UP, "Head Rotation"},
+            { CBlendShape.HEAD_ROTATION_DOWN, "Head Rotation"},
+            { CBlendShape.HEAD_ROTATION_TILT_LEFT, "Head Rotation"},
+            { CBlendShape.HEAD_ROTATION_TILT_RIGHT, "Head Rotation"}
         };
 
         private static readonly Dictionary<string, List<int>> _groupToIds = _idToGroup
@@ -175,6 +195,15 @@ namespace LFE.FacialMotionCapture.Models
             { CBlendShape.MOUTH_UPPER_RIGHT, "Mouth Upper Right" },
             { CBlendShape.NOSE_SNEER_LEFT, "Nose Sneer Left" },
             { CBlendShape.NOSE_SNEER_RIGHT, "Nose Sneer Right" },
+            // { CBlendShape.HEAD_POSITION_X, "Head Position X"},
+            // { CBlendShape.HEAD_POSITION_Y, "Head Position Y"},
+            // { CBlendShape.HEAD_POSITION_Z, "Head Position Z"},
+            { CBlendShape.HEAD_ROTATION_LEFT, "Head Left"},
+            { CBlendShape.HEAD_ROTATION_RIGHT, "Head Right"},
+            { CBlendShape.HEAD_ROTATION_UP, "Head Up"},
+            { CBlendShape.HEAD_ROTATION_DOWN, "Head Down"},
+            { CBlendShape.HEAD_ROTATION_TILT_LEFT, "Head Tilt Left"},
+            { CBlendShape.HEAD_ROTATION_TILT_RIGHT, "Head Tilt Right"}
         };
 
         private static readonly Dictionary<string, int> _nameToId = _idToName

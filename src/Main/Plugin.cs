@@ -18,6 +18,9 @@ namespace LFE.FacialMotionCapture.Main {
 
         public Dictionary<int, BlendShapeReceivedEventArgs> ShapeEventsForFrame = new Dictionary<int, BlendShapeReceivedEventArgs>();
 
+        public FreeControllerV3 HeadController;
+        public Quaternion OriginalHeadRotation;
+
 		void Start() {
 
             if (!containingAtom || containingAtom.type != "Person")
@@ -26,6 +29,9 @@ namespace LFE.FacialMotionCapture.Main {
                 enabled = false;
                 return;
             }
+
+            HeadController = containingAtom.freeControllers.Single(fc => fc.name == "headControl");
+            OriginalHeadRotation = HeadController.transform.rotation;
 
             DeviceController = new DeviceController(this, null);
             SettingsController = new SettingsController(this);
@@ -37,11 +43,15 @@ namespace LFE.FacialMotionCapture.Main {
             var changes = DeviceController.GetChanges();
 
             foreach(var change in changes) {
+                DAZMorph changedMorph = null;
+                JSONStorableFloat changedEye = null;
+                Quaternion? changedHeadRotation = null;
+
                 if(!ShapeEnabled(change.Value.Shape)) {
                     continue;
                 }
 
-                var changedMorph = RunMorphChange(change.Value);
+                changedMorph = RunMorphChange(change.Value);
                 if(changedMorph != null) {
                     if(RecordingController.IsRecording) {
                         RecordingController.RecordMorphValue(changedMorph.displayName, changedMorph.morphValue);
@@ -49,12 +59,16 @@ namespace LFE.FacialMotionCapture.Main {
                 }
 
                 if(changedMorph == null) {
-                    var changedEye = RunEyeChange(change.Value);
+                    changedEye = RunEyeChange(change.Value);
                     if(changedEye != null) {
                         if(RecordingController.IsRecording) {
                             RecordingController.RecordEyeValue(changedEye.name, changedEye.val);
                         }
                     }
+                }
+
+                if(changedEye == null) {
+                    changedHeadRotation = RunHeadRotationChange(change.Value, OriginalHeadRotation);
                 }
             }
 
@@ -192,6 +206,49 @@ namespace LFE.FacialMotionCapture.Main {
             }
 
             return null;
+        }
+
+        Vector3 _latestHeadRotationValues = Vector3.zero;
+        private Quaternion? RunHeadRotationChange(BlendShapeReceivedEventArgs item, Quaternion originalRotation) {
+            float multiplier = UIController.StorableBlendShapeStrength[item.Shape.Id].val;
+            switch(item.Shape.Id) {
+                case CBlendShape.HEAD_ROTATION_RIGHT:
+                    _latestHeadRotationValues.y = item.Value * multiplier;
+                    break;
+                case CBlendShape.HEAD_ROTATION_LEFT:
+                    _latestHeadRotationValues.y = item.Value * -1 * multiplier;
+                    break;
+                case CBlendShape.HEAD_ROTATION_UP:
+                    _latestHeadRotationValues.x = item.Value * -1 * multiplier;
+                    break;
+                case CBlendShape.HEAD_ROTATION_DOWN:
+                    _latestHeadRotationValues.x = item.Value * multiplier;
+                    break;
+                case CBlendShape.HEAD_ROTATION_TILT_LEFT:
+                    _latestHeadRotationValues.z = item.Value * multiplier;
+                    break;
+                case CBlendShape.HEAD_ROTATION_TILT_RIGHT:
+                    _latestHeadRotationValues.z = item.Value * -1 * multiplier;
+                    break;
+                default:
+                    return null;
+            }
+
+            const int degMult = 90;
+            var newRotation = OriginalHeadRotation;
+            newRotation *= Quaternion.Euler(new Vector3(1, 0, 0) * _latestHeadRotationValues.x * degMult);
+            newRotation *= Quaternion.Euler(new Vector3(0, 1, 0) * _latestHeadRotationValues.y * degMult);
+            newRotation *= Quaternion.Euler(new Vector3(0, 0, 1) * _latestHeadRotationValues.z * degMult);
+
+            if(HeadController != null) {
+                HeadController.transform.rotation = newRotation;
+                UIController.SetShapeSliderColor(item.Shape.Id, Color.Lerp(Color.white, Color.green, Math.Abs(item.Value)));
+                return newRotation;
+            }
+            else {
+                UIController.SetShapeSliderColor(item.Shape.Id, Color.Lerp(Color.white, Color.black, Math.Abs(item.Value)));
+                return null;
+            }
         }
 
         private bool ShapeEnabled(BlendShape shape) {

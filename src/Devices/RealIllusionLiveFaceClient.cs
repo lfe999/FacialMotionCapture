@@ -135,7 +135,7 @@ namespace LFE.FacialMotionCapture.Devices {
                     var parts = item.Split(':');
                     if(parts.Length == 2) {
                         try {
-                            var shape = Map(parts[0].Trim()); // todo: consider normalizing shape name
+                            var shape = MapNameToBlendShape(parts[0].Trim()); // todo: consider normalizing shape name
                             if(shape != null) {
                                 var shapeValue = float.Parse(parts[1].Trim()) / 100;
                                 BlendShapeReceived.Invoke(this, new BlendShapeReceivedEventArgs(shape, shapeValue));
@@ -154,7 +154,7 @@ namespace LFE.FacialMotionCapture.Devices {
             return String.Empty;
         }
 
-        private BlendShape Map(string shape) {
+        private BlendShape MapNameToBlendShape(string shape) {
             switch(shape) {
                 case "browDown_L":
                     return new BlendShape(CBlendShape.BROW_DOWN_LEFT);
@@ -201,28 +201,22 @@ namespace LFE.FacialMotionCapture.Devices {
                 case "eyeWide_R":
                     return new BlendShape(CBlendShape.EYE_WIDE_RIGHT);
                 case "head_Down":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_DOWN);
                 case "head_Left":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_LEFT);
                 case "head_LeftTilt":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_TILT_LEFT);
                 case "HeadPosX":
                 case "HeadPosY":
                 case "HeadPosZ":
                     // not supported
                     break;
                 case "head_Right":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_RIGHT);
                 case "head_RightTilt":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_TILT_RIGHT);
                 case "head_Up":
-                    // not supported
-                    break;
+                    return new BlendShape(CBlendShape.HEAD_ROTATION_UP);
                 case "jawForward":
                     return new BlendShape(CBlendShape.JAW_FORWARD);
                 case "jawLeft":
