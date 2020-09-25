@@ -69,6 +69,11 @@ namespace LFE.FacialMotionCapture.Main {
 
                 if(changedEye == null) {
                     changedHeadRotation = RunHeadRotationChange(change.Value, OriginalHeadRotation);
+                    if(changedHeadRotation.HasValue) {
+                        if(RecordingController.IsRecording) {
+                            RecordingController.RecordHeadRotationValue(changedHeadRotation.Value);
+                        }
+                    }
                 }
             }
 

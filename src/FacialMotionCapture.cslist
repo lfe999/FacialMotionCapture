@@ -15,3 +15,5 @@ Extensions/StringExtensions.cs
 Models/BlendShape.cs
 Models/CBlendShape.cs
 Models/FloatParamFrame.cs
+Models/ControllerFrame.cs
+Models/ITimelineFrame.cs

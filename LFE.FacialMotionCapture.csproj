@@ -110,6 +110,8 @@
     <Compile Include="src\Models\BlendShape.cs" />
     <Compile Include="src\Models\CBlendShape.cs" />
     <Compile Include="src\Models\FloatParamFrame.cs" />
+    <Compile Include="src\Models\ControllerFrame.cs" />
+    <Compile Include="src\Models\ITimelineFrame.cs" />
 
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

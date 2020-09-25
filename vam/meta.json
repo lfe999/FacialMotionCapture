@@ -29,7 +29,9 @@
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Main\\Plugin.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\BlendShape.cs",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\CBlendShape.cs",
-      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\FloatParamFrame.cs"
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\FloatParamFrame.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\ControllerFrame.cs",
+      "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Models\\ITimelineFrame.cs"
    ], 
    "dependencies" : { 
    }

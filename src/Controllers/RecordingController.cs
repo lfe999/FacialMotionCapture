@@ -9,7 +9,7 @@ namespace LFE.FacialMotionCapture.Controllers {
     public class RecordingController {
         private int _currentFrameId = 0;
         private float _initialDeltaTime = 0;
-        private List<FloatParamFrame> _recordedFrames = new List<FloatParamFrame>();
+        private List<ITimelineFrame> _recordedFrames = new List<ITimelineFrame>();
 
         public Plugin Plugin { get; private set; }
         public bool IsRecording { get; private set; }
@@ -31,7 +31,7 @@ namespace LFE.FacialMotionCapture.Controllers {
             _initialDeltaTime = 0;
             _currentFrameId = 0;
             lock(_recordedFrames) {
-                _recordedFrames = new List<FloatParamFrame>();
+                _recordedFrames = new List<ITimelineFrame>();
             }
         }
 
@@ -76,6 +76,28 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
         }
 
+        public void RecordHeadRotationValue(Quaternion rotation) {
+            if(Plugin.HeadController == null) {
+                return;
+            }
+            lock(_recordedFrames) {
+                if(_initialDeltaTime == 0) {
+                    _initialDeltaTime = Time.deltaTime;
+                }
+                // head position needs to be there for timeline in the first frame always. force it
+                Vector3? position = null;
+                if(_currentFrameId == 0) {
+                    position = Plugin.HeadController.transform.position;
+                }
+                _recordedFrames.Add(new ControllerFrame {
+                    Number = _currentFrameId + 1,
+                    ControllerName = "headControl",
+                    Rotation = rotation,
+                    Position = position
+                });
+            }
+        }
+
         public string SaveTimelineAnimation() {
             var timelineAnimation = GetTimelineAnimation();
 
@@ -99,14 +121,13 @@ namespace LFE.FacialMotionCapture.Controllers {
         public SimpleJSON.JSONClass GetTimelineAnimation() {
 
             // snapshot the current recorded frames
-            var groupedFrames = new Dictionary<string, List<FloatParamFrame>>();
+            var groupedFrames = new Dictionary<string, List<ITimelineFrame>>();
             int maxFrameNumber = 0;
             float frameDuration = _initialDeltaTime;
             lock(_recordedFrames) {
                 maxFrameNumber = _recordedFrames.Max(f => f.Number);
-                // group frames by (storable,name) -> values[]
                 groupedFrames = _recordedFrames
-                    .GroupBy(x => $"{x.StorableName}_{x.Name}")
+                    .GroupBy(x => x.GetGroupName())
                     .ToDictionary(x => x.Key, x => x.ToList());
             }
 
@@ -133,27 +154,95 @@ namespace LFE.FacialMotionCapture.Controllers {
             animationClip["Controllers"] = new SimpleJSON.JSONArray();
             animationClip["FloatParams"] = new SimpleJSON.JSONArray();
 
-            foreach(var morphFrames in groupedFrames) {
-                var storable = morphFrames.Value.First().StorableName;
-                var name = morphFrames.Value.First().Name;
-                var frames = morphFrames.Value;
+            foreach(var frameGroup in groupedFrames) {
+                var firstFrame = frameGroup.Value.First();
+                if(firstFrame is FloatParamFrame) {
+                    var storable = ((FloatParamFrame)firstFrame).StorableName;
+                    var name = ((FloatParamFrame)firstFrame).Name;
+                    var frames = frameGroup.Value.Cast<FloatParamFrame>();
 
-                var floatParam = new SimpleJSON.JSONClass();
-                floatParam["Storable"] = storable;
-                floatParam["Name"] = name;
-                floatParam["Value"] = new SimpleJSON.JSONArray();
-                foreach(var frame in frames) {
-                    var jsonEntry = new SimpleJSON.JSONClass();
-                    jsonEntry["t"] = ((frame.Number - 1) * frameDuration).ToString(); // consider each frame as 0.1
-                    jsonEntry["v"] = frame.Value.ToString();
-                    jsonEntry["ti"] = "0";
-                    jsonEntry["to"] = "0";
-                    jsonEntry["c"] = "0";
+                    var floatParam = new SimpleJSON.JSONClass();
+                    floatParam["Storable"] = storable;
+                    floatParam["Name"] = name;
+                    floatParam["Value"] = new SimpleJSON.JSONArray();
+                    foreach(var frame in frames) {
+                        var jsonEntry = new SimpleJSON.JSONClass();
+                        jsonEntry["t"] = ((frame.Number - 1) * frameDuration).ToString(); // consider each frame as 0.1
+                        jsonEntry["v"] = frame.Value.ToString();
+                        jsonEntry["ti"] = "0";
+                        jsonEntry["to"] = "0";
+                        jsonEntry["c"] = "0";
 
-                    floatParam["Value"].Add(jsonEntry);
+                        floatParam["Value"].Add(jsonEntry);
+                    }
+
+                    animationClip["FloatParams"].Add(floatParam);
+                }
+                else if(firstFrame is ControllerFrame) {
+                    var controllerName = ((ControllerFrame)firstFrame).ControllerName;
+                    var frames = frameGroup.Value.Cast<ControllerFrame>();
+
+                    var controller = new SimpleJSON.JSONClass();
+                    controller["Controller"] = controllerName;
+
+                    controller["X"] = new SimpleJSON.JSONArray();
+                    controller["Y"] = new SimpleJSON.JSONArray();
+                    controller["Z"] = new SimpleJSON.JSONArray();
+                    controller["RotX"] = new SimpleJSON.JSONArray();
+                    controller["RotY"] = new SimpleJSON.JSONArray();
+                    controller["RotZ"] = new SimpleJSON.JSONArray();
+                    controller["RotW"] = new SimpleJSON.JSONArray();
+                    foreach(var frame in frames) {
+                        string t = ((frame.Number - 1) * frameDuration).ToString();
+                        string ti = "0";
+                        string to = "0";
+                        string c = "3";
+                        if(frame.Position.HasValue) {
+                            var pos = frame.Position.Value;
+                            foreach(var a in new string[] {"X", "Y", "Z"} ) {
+                                string value = null;
+                                switch(a) {
+                                    case "X": value = pos.x.ToString(); break;
+                                    case "Y": value = pos.y.ToString(); break;
+                                    case "Z": value = pos.z.ToString(); break;
+                                }
+                                if(value != null) {
+                                    var entry = new SimpleJSON.JSONClass();
+                                    entry["v"] = value;
+                                    entry["t"] = t;
+                                    entry["ti"] = ti;
+                                    entry["to"] = to;
+                                    entry["c"] = c;
+                                    controller[a].Add(entry);
+                                }
+                            }
+                        }
+                        if(frame.Rotation.HasValue) {
+                            var rot = frame.Rotation.Value;
+                            foreach(var a in new string[] {"RotX", "RotY", "RotZ", "RotW"} ) {
+                                string value = null;
+                                switch(a) {
+                                    case "RotX": value = rot.x.ToString(); break;
+                                    case "RotY": value = rot.y.ToString(); break;
+                                    case "RotZ": value = rot.z.ToString(); break;
+                                    case "RotW": value = rot.w.ToString(); break;
+                                }
+                                if(value != null) {
+                                    var entry = new SimpleJSON.JSONClass();
+                                    entry["v"] = value;
+                                    entry["t"] = t;
+                                    entry["ti"] = ti;
+                                    entry["to"] = to;
+                                    entry["c"] = c;
+                                    controller[a].Add(entry);
+                                }
+                            }
+                        }
+                    }
+
+                    animationClip["Controllers"].Add(controller);
                 }
 
-                animationClip["FloatParams"].Add(floatParam);
             }
 
             animation["Clips"].Add(animationClip);
