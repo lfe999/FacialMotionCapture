@@ -78,7 +78,9 @@ namespace LFE.FacialMotionCapture.Controllers {
                             }
                         }
                         else if(groupName == "Looking") {
-                            // TODO: put eyes back
+                            if(Plugin.EyePluginInstalled()) {
+                                Plugin.EyePlugin.CallAction("Reset");
+                            }
                         }
                         else {
                             var shapeName = CBlendShape.IdToName(shapeId);

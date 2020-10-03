@@ -79,6 +79,13 @@ namespace LFE {
             }
         }
 
+        public void Reset() {
+            LEyeRightLeftStorable.val = LEyeRightLeftStorable.defaultVal;
+            LEyeUpDownStorable.val = LEyeUpDownStorable.defaultVal;
+            REyeRightLeftStorable.val = REyeRightLeftStorable.defaultVal;
+            REyeUpDownStorable.val = REyeUpDownStorable.defaultVal;
+        }
+
         public JSONStorableStringChooser EyesRelativeToStorable;
         public JSONStorableFloat LEyeUpDownStorable;
         public JSONStorableFloat LEyeRightLeftStorable;
@@ -123,6 +130,9 @@ namespace LFE {
             REyeRightLeftStorable = new JSONStorableFloat("rEyeRightLeft", 0, -45, 45);
             var rEyeRightLeftSlider = CreateSlider(REyeRightLeftStorable, rightSide: true);
             RegisterFloat(REyeRightLeftStorable);
+
+            var resetAction = new JSONStorableAction("Reset", Reset);
+            RegisterAction(resetAction);
 
         }
 
