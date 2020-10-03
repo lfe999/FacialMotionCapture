@@ -339,7 +339,14 @@ namespace LFE.FacialMotionCapture.Main {
             newRotation *= Quaternion.Euler(new Vector3(0, 0, 1) * _latestHeadRotationValues.z * degMult);
 
             if(HeadController != null) {
-                HeadController.transform.rotation = newRotation;
+                // smoothing strategy
+                if(SettingsController.GetSmoothingMultiplier() > 0) {
+                    HeadController.transform.rotation = Quaternion.Lerp(HeadController.transform.rotation, newRotation, Time.fixedDeltaTime / (SettingsController.GetSmoothingMultiplier() / 20 ));
+                }
+                // just set it strategy
+                else {
+                    HeadController.transform.rotation = newRotation;
+                }
                 UIController.SetShapeSliderColor(item.Shape.Id, Color.Lerp(Color.white, Color.green, Math.Abs(item.Value)));
                 return newRotation;
             }
