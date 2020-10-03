@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Main\Plugin.cs" />
+    <Compile Include="src\Main\EyeGazeControl.cs" />
     <Compile Include="src\Controllers\DeviceController.cs" />
     <Compile Include="src\Controllers\RecordingController.cs" />
     <Compile Include="src\Controllers\SettingsController.cs" />
