@@ -1,4 +1,4 @@
-﻿#define LFE_DEBUG
+﻿// #define LFE_DEBUG
 
 using LFE.FacialMotionCapture.Controllers;
 using LFE.FacialMotionCapture.Devices;

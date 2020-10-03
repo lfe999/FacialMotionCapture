@@ -1,4 +1,4 @@
-#define LFE_DEBUG
+// #define LFE_DEBUG
 using LFE.FacialMotionCapture.Main;
 using LFE.FacialMotionCapture.Extensions;
 using UnityEngine;
