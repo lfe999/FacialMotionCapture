@@ -9,40 +9,55 @@ namespace LFE.FacialMotionCapture.Controllers {
         private Plugin _plugin;
 
         public string DefaultSettingsFile { get; private set; }
-        public string SettingsFile { get; private set; }
+        public string GlobalSettingsFile { get; private set; }
 
+        public const string CLIENT_IP_KEY = "clientIp";
+        public const string SERVER_IP_KEY = "serverIp";
+        public const string DEVICE_KEY = "device";
+        public const string GROUP_TOGGLE_KEY = "groupToggle";
 
         public SettingsController(Plugin plugin)
         {
             _plugin = plugin;
             DefaultSettingsFile = $"{_plugin.GetPluginPath()}defaults.json";
-            SettingsFile = "Saves\\lfe_facialmotioncapture.json";
-            Load();
+            GlobalSettingsFile = "Saves\\lfe_facialmotioncapture.json";
+            LoadFromGlobal();
         }
 
         public string GetIpAddress()
         {
-            return _settings["clientIp"]?.Value;
+            return _settings[CLIENT_IP_KEY]?.Value;
         }
 
         public void SetIpAddress(string ip) {
-            _settings["clientIp"] = ip;
+            _settings[CLIENT_IP_KEY] = ip;
         }
 
         public string GetLocalServerIpAddress() {
-            return _settings["serverIp"]?.Value;
+            return _settings[SERVER_IP_KEY]?.Value;
         }
 
         public void SetLocalServerIpAddress(string ip) {
-            _settings["serverIp"] = ip;
+            _settings[SERVER_IP_KEY] = ip;
         }
 
         public string GetDevice() {
-            return _settings["device"]?.Value;
+            return _settings[DEVICE_KEY]?.Value;
         }
 
         public void SetDevice(string device) {
-            _settings["device"] = device;
+            _settings[DEVICE_KEY] = device;
+        }
+
+        public bool GetGroupEnabled(string groupName) {
+            if(_settings[GROUP_TOGGLE_KEY]?.AsObject?.HasKey(groupName) ?? false) {
+                return _settings[GROUP_TOGGLE_KEY][groupName].AsBool;
+            }
+            return true;
+        }
+
+        public void SetGroupEnabled(string groupName, bool isEnabled) {
+            _settings[GROUP_TOGGLE_KEY][groupName].AsBool = isEnabled;
         }
 
         public float? GetShapeStrength(string name) {
@@ -67,24 +82,34 @@ namespace LFE.FacialMotionCapture.Controllers {
             return null;
         }
 
-        public SettingsController Load()
+        public SettingsController LoadFromGlobal()
         {
-            if(MVR.FileManagementSecure.FileManagerSecure.FileExists(SettingsFile, onlySystemFiles: true)) {
-                _settings = SuperController.singleton.LoadJSON(SettingsFile)?.AsObject;
+            if(MVR.FileManagementSecure.FileManagerSecure.FileExists(GlobalSettingsFile, onlySystemFiles: true)) {
+                return LoadFrom(GlobalSettingsFile);
             }
-            else {
-                _settings = SuperController.singleton.LoadJSON(DefaultSettingsFile)?.AsObject;
-            }
+            return LoadFrom(DefaultSettingsFile);
+        }
+
+        public SettingsController LoadFrom(string fileName) {
+            return LoadFrom(SuperController.singleton.LoadJSON(DefaultSettingsFile)?.AsObject);
+        }
+
+        public SettingsController LoadFrom(SimpleJSON.JSONClass jsonClass) {
+            _settings = jsonClass;
             return this;
         }
 
-        public SettingsController Save()
+        public SettingsController SaveToGlobal()
         {
-            SuperController.singleton.SaveJSON(_settings, SettingsFile);
+            return SaveTo(GlobalSettingsFile);
+        }
+
+        public SettingsController SaveTo(string fileName) {
+            SuperController.singleton.SaveJSON(_settings, fileName);
             return this;
         }
 
-        public SimpleJSON.JSONClass ToJsonClass() {
+        public SimpleJSON.JSONClass ToJSONClass() {
             return _settings;
         }
     }

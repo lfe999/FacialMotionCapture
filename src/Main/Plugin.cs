@@ -1,4 +1,6 @@
-﻿using LFE.FacialMotionCapture.Controllers;
+﻿// #define LFE_DEBUG
+
+using LFE.FacialMotionCapture.Controllers;
 using LFE.FacialMotionCapture.Devices;
 using LFE.FacialMotionCapture.Models;
 using LFE.FacialMotionCapture.Extensions;
@@ -6,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using SimpleJSON;
 
 namespace LFE.FacialMotionCapture.Main {
 
@@ -21,7 +24,10 @@ namespace LFE.FacialMotionCapture.Main {
         public FreeControllerV3 HeadController;
         public Quaternion OriginalHeadRotation;
 
-		void Start() {
+		public override void Init() {
+#if LFE_DEBUG
+            SuperController.LogMessage($"Init()");
+#endif
 
             if (!containingAtom || containingAtom.type != "Person")
             {
@@ -38,6 +44,63 @@ namespace LFE.FacialMotionCapture.Main {
             RecordingController = new RecordingController(this);
             UIController = new UIController(this);
 		}
+
+        // loading scene
+        public override void RestoreFromJSON(JSONClass jc, bool restorePhysical = true, bool restoreAppearance = true, JSONArray presetAtoms = null, bool setMissingToDefault = true)
+        {
+#if LFE_DEBUG
+            SuperController.LogMessage($"RestoreFromJSON()");
+#endif
+
+            base.RestoreFromJSON(jc, restorePhysical, restoreAppearance, presetAtoms, setMissingToDefault);
+
+            try {
+                if(jc.HasKey("Settings")) {
+                    var settings = jc["Settings"].AsObject;
+                    if(settings != null) {
+                        SettingsController.LoadFrom(settings);
+                    }
+                }
+                if(UIController != null) {
+                    foreach(var item in UIController.StorableIsGroupEnabled) {
+#if LFE_DEBUG
+                        SuperController.LogMessage($"{item}");
+#endif
+                        if(jc.HasKey(item.Key)) {
+                            item.Value.val = jc[item.Key]?.AsBool ?? true;
+#if LFE_DEBUG
+                            SuperController.LogMessage($"setting group value: {item.Key} to {item.Value.val}");
+#endif
+                        }
+                    }
+                }
+                return;
+            }
+            catch(Exception e) {
+                SuperController.LogError($"Load settings failed: {e.ToString()}");
+            }
+        }
+
+        // saving scene
+        public override JSONClass GetJSON(bool includePhysical = true, bool includeAppearance = true, bool forceStore = false) {
+            var json = base.GetJSON(includePhysical, includeAppearance, forceStore);
+
+            try {
+                var settings = SettingsController.ToJSONClass();
+                if(settings != null) {
+                    json["Settings"] = settings;
+                    json["Settings"][SettingsController.DEVICE_KEY] = String.Empty;
+                    json["Settings"][SettingsController.CLIENT_IP_KEY] = String.Empty;
+                    json["Settings"][SettingsController.SERVER_IP_KEY] = String.Empty;
+                    needsStore = true;
+                }
+            }
+            catch(Exception e) {
+                SuperController.LogError($"Save settings failed: {e.ToString()}");
+            }
+
+            return json;
+        }
 
 		void FixedUpdate() {
             var changes = DeviceController.GetChanges();

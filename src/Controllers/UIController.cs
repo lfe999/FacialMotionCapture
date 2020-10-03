@@ -59,7 +59,8 @@ namespace LFE.FacialMotionCapture.Controllers {
 
             // group is enabled toggles
             foreach(var groupName in CBlendShape.Groups()) {
-                StorableIsGroupEnabled[groupName] = new JSONStorableBool($"{groupName}Enabled", true, (bool value) => {
+                StorableIsGroupEnabled[groupName] = new JSONStorableBool($"{groupName}Enabled", Plugin.SettingsController.GetGroupEnabled(groupName), (bool value) => {
+                    Plugin.SettingsController.SetGroupEnabled(groupName, value);
                     var shapesInGroup = CBlendShape.IdsInGroup(groupName).ToList();
                     foreach(var shapeId in shapesInGroup)
                     {
@@ -85,6 +86,7 @@ namespace LFE.FacialMotionCapture.Controllers {
                     }
                     CreateBlendShapeUI();
                 });
+                Plugin.RegisterBool(StorableIsGroupEnabled[groupName]);
             }
 
             // blendshape strength values
@@ -96,7 +98,7 @@ namespace LFE.FacialMotionCapture.Controllers {
                     multiplier,
                     (float value) => {
                         Plugin.SettingsController.SetShapeStrength(shapeName, value);
-                        Plugin.SettingsController.Save();
+                        Plugin.SettingsController.SaveToGlobal();
                     },
                     -10, 10, true, true
                 );
@@ -137,7 +139,7 @@ namespace LFE.FacialMotionCapture.Controllers {
             _clientsChooser = Plugin.CreatePopup(StorableDeviceType);
             _clientsChooser.popup.onValueChangeHandlers += (string val) => {
                 Plugin.SettingsController.SetDevice(val);
-                Plugin.SettingsController.Save();
+                Plugin.SettingsController.SaveToGlobal();
                 Plugin.DeviceController.Destroy();
                 RerenderUI();
             };
@@ -149,7 +151,7 @@ namespace LFE.FacialMotionCapture.Controllers {
                     var ip = val.ToIPEndPoint();
                     if(ip != null) {
                         Plugin.SettingsController.SetLocalServerIpAddress(val);
-                        Plugin.SettingsController.Save();
+                        Plugin.SettingsController.SaveToGlobal();
                     }
                     Plugin.DeviceController.Destroy();
                     RerenderUI();
@@ -172,7 +174,7 @@ namespace LFE.FacialMotionCapture.Controllers {
                     var ip = value.ToIPAddress();
                     if(ip != null) {
                         Plugin.SettingsController.SetIpAddress(value);
-                        Plugin.SettingsController.Save();
+                        Plugin.SettingsController.SaveToGlobal();
                     }
                 });
                 targetValuesInput.onEndEdit.AddListener((string value) => {
