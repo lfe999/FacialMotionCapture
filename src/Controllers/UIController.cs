@@ -19,6 +19,8 @@ namespace LFE.FacialMotionCapture.Controllers {
         private Dictionary<int, UIDynamicSlider> shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
         private UIDynamicToggle recordButton;
         private UIDynamicTextField recordMessage;
+        private UIDynamicSlider minimumChangeSlider;
+        private UIDynamic minimumChangeSliderSpace;
 
 
         public Plugin Plugin { get; private set; }
@@ -29,6 +31,8 @@ namespace LFE.FacialMotionCapture.Controllers {
         public JSONStorableStringChooser StorableDeviceType;
         public JSONStorableStringChooser StorableServerIp;
         public JSONStorableString StorableClientIp;
+        public JSONStorableFloat StorableMinimumChangePct;
+
         public UIController(Plugin plugin)
         {
             Plugin = plugin;
@@ -56,6 +60,10 @@ namespace LFE.FacialMotionCapture.Controllers {
                 if(value) { Plugin.StartRecording(); }
                 else { Plugin.StopRecording(); }
             });
+
+            StorableMinimumChangePct = new JSONStorableFloat("Smoothing", 0.0f, (float value) => {
+                Plugin.SettingsController.SetSmoothingMultiplier(value);
+            }, 0, 5, constrain: true);
 
             // group is enabled toggles
             foreach(var groupName in CBlendShape.Groups()) {
@@ -298,6 +306,9 @@ namespace LFE.FacialMotionCapture.Controllers {
             recordMessage = Plugin.CreateTextField(StorableRecordingMessage, rightSide: true);
             recordMessage.SetLayoutHeight(75);
 
+            minimumChangeSlider = Plugin.CreateSlider(StorableMinimumChangePct);
+            minimumChangeSliderSpace = Plugin.CreateSpacer(rightSide: true);
+
             foreach(var group in CBlendShape.Groups()) {
 
                 var isEnabledStorable = StorableIsGroupEnabled[group];
@@ -335,6 +346,12 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
             if(recordButton != null) {
                 Plugin.RemoveToggle(recordButton);
+            }
+            if(minimumChangeSlider != null) {
+                Plugin.RemoveSlider(minimumChangeSlider);
+            }
+            if(minimumChangeSliderSpace != null) {
+                Plugin.RemoveSpacer(minimumChangeSliderSpace);
             }
             foreach(var item in shapeMultiplierSliders){
                 Plugin.RemoveSlider(item.Value);

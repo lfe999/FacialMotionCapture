@@ -1,5 +1,7 @@
+#define LFE_DEBUG
 using LFE.FacialMotionCapture.Main;
 using LFE.FacialMotionCapture.Extensions;
+using UnityEngine;
 
 namespace LFE.FacialMotionCapture.Controllers {
 
@@ -8,12 +10,15 @@ namespace LFE.FacialMotionCapture.Controllers {
         private SimpleJSON.JSONClass _settings;
         private Plugin _plugin;
 
+        public SimpleJSON.JSONClass GlobalSettings { get; private set; }
+
         public string DefaultSettingsFile { get; private set; }
         public string GlobalSettingsFile { get; private set; }
 
         public const string CLIENT_IP_KEY = "clientIp";
         public const string SERVER_IP_KEY = "serverIp";
         public const string DEVICE_KEY = "device";
+        public const string MINIMUM_CHANGE_PCT_KEY = "smoothing";
         public const string GROUP_TOGGLE_KEY = "groupToggle";
 
         public SettingsController(Plugin plugin)
@@ -22,6 +27,17 @@ namespace LFE.FacialMotionCapture.Controllers {
             DefaultSettingsFile = $"{_plugin.GetPluginPath()}defaults.json";
             GlobalSettingsFile = "Saves\\lfe_facialmotioncapture.json";
             LoadFromGlobal();
+        }
+
+        public float GetSmoothingMultiplier() {
+            if(!_settings.HasKey(MINIMUM_CHANGE_PCT_KEY)) {
+                _settings[MINIMUM_CHANGE_PCT_KEY].AsFloat = 0.05f;
+            }
+            return _settings[MINIMUM_CHANGE_PCT_KEY].AsFloat;
+        }
+
+        public void SetSmoothingMultiplier(float pct) {
+            _settings[MINIMUM_CHANGE_PCT_KEY].AsFloat = pct;
         }
 
         public string GetIpAddress()
@@ -85,13 +101,26 @@ namespace LFE.FacialMotionCapture.Controllers {
         public SettingsController LoadFromGlobal()
         {
             if(MVR.FileManagementSecure.FileManagerSecure.FileExists(GlobalSettingsFile, onlySystemFiles: true)) {
-                return LoadFrom(GlobalSettingsFile);
+#if LFE_DEBUG
+            SuperController.LogMessage($"LoadFromGlobal(): {GlobalSettingsFile}");
+#endif
+                LoadFrom(GlobalSettingsFile);
             }
-            return LoadFrom(DefaultSettingsFile);
+            else {
+#if LFE_DEBUG
+            SuperController.LogMessage($"LoadFromGlobal(): {DefaultSettingsFile}");
+#endif
+                LoadFrom(DefaultSettingsFile);
+            }
+            GlobalSettings = _settings;
+#if LFE_DEBUG
+            SuperController.LogMessage(GlobalSettings.ToString());
+#endif
+            return this;
         }
 
         public SettingsController LoadFrom(string fileName) {
-            return LoadFrom(SuperController.singleton.LoadJSON(DefaultSettingsFile)?.AsObject);
+            return LoadFrom(SuperController.singleton.LoadJSON(fileName)?.AsObject);
         }
 
         public SettingsController LoadFrom(SimpleJSON.JSONClass jsonClass) {

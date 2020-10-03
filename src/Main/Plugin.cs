@@ -1,4 +1,4 @@
-﻿// #define LFE_DEBUG
+﻿#define LFE_DEBUG
 
 using LFE.FacialMotionCapture.Controllers;
 using LFE.FacialMotionCapture.Devices;
@@ -59,6 +59,15 @@ namespace LFE.FacialMotionCapture.Main {
                     var settings = jc["Settings"].AsObject;
                     if(settings != null) {
                         SettingsController.LoadFrom(settings);
+                        SettingsController.SetDevice(
+                            SettingsController.GlobalSettings?.AsObject[SettingsController.DEVICE_KEY]?.Value ?? String.Empty
+                        );
+                        SettingsController.SetIpAddress(
+                            SettingsController.GlobalSettings?.AsObject[SettingsController.CLIENT_IP_KEY]?.Value ?? String.Empty
+                        );
+                        SettingsController.SetLocalServerIpAddress(
+                            SettingsController.GlobalSettings?.AsObject[SettingsController.SERVER_IP_KEY]?.Value ?? String.Empty
+                        );
                     }
                 }
                 if(UIController != null) {
@@ -89,9 +98,9 @@ namespace LFE.FacialMotionCapture.Main {
                 var settings = SettingsController.ToJSONClass();
                 if(settings != null) {
                     json["Settings"] = settings;
-                    json["Settings"][SettingsController.DEVICE_KEY] = String.Empty;
-                    json["Settings"][SettingsController.CLIENT_IP_KEY] = String.Empty;
-                    json["Settings"][SettingsController.SERVER_IP_KEY] = String.Empty;
+                    json["Settings"].Remove(SettingsController.DEVICE_KEY);
+                    json["Settings"].Remove(SettingsController.CLIENT_IP_KEY);
+                    json["Settings"].Remove(SettingsController.SERVER_IP_KEY);
                     needsStore = true;
                 }
             }
@@ -102,6 +111,7 @@ namespace LFE.FacialMotionCapture.Main {
             return json;
         }
 
+        private Dictionary<int, float> _smoothingVelocities = new Dictionary<int, float>();
 		void FixedUpdate() {
             var changes = DeviceController.GetChanges();
 
@@ -199,7 +209,27 @@ namespace LFE.FacialMotionCapture.Main {
         private DAZMorph RunMorphChange(BlendShapeReceivedEventArgs item) {
             var morph = GetMorph(SettingsController.GetShapeMorph(item?.Shape?.Name));
             if(morph != null) {
-                morph.morphValueAdjustLimits = item.Value * UIController.StorableBlendShapeStrength[item.Shape.Id].val;
+                var multiplier = UIController.StorableBlendShapeStrength[item.Shape.Id].val;
+                var newValue = item.Value * multiplier;
+                var oldValue = morph.morphValue;
+
+                // smoothing strategy
+                if(SettingsController.GetSmoothingMultiplier() > 0) {
+                    if(!_smoothingVelocities.ContainsKey(item.Shape.Id)) {
+                        _smoothingVelocities[item.Shape.Id] = 0f;
+                    }
+                    float changePct = Mathf.Abs(oldValue - newValue) / Mathf.Abs(multiplier);
+                    float velocity = _smoothingVelocities[item.Shape.Id];
+                    morph.morphValueAdjustLimits = Mathf.SmoothDamp(oldValue, newValue, ref velocity, Time.fixedDeltaTime * SettingsController.GetSmoothingMultiplier());
+                    _smoothingVelocities[item.Shape.Id] = velocity;
+
+                }
+                // just set it strategy
+                else {
+                    morph.morphValueAdjustLimits = newValue;
+                }
+
+
                 UIController.SetShapeSliderColor(item.Shape.Id, Color.Lerp(Color.white, Color.green, Math.Abs(item.Value)));
                 return morph;
             }
