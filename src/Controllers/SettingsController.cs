@@ -25,7 +25,7 @@ namespace LFE.FacialMotionCapture.Controllers {
         {
             _plugin = plugin;
             DefaultSettingsFile = $"{_plugin.GetPluginPath()}defaults.json";
-            GlobalSettingsFile = "Saves\\lfe_facialmotioncapture.json";
+            GlobalSettingsFile = "Saves\\PluginData\\lfe_facialmotioncapture.json";
             LoadFromGlobal();
         }
 

@@ -7,7 +7,7 @@
    "credits" : "", 
    "instructions" : "",
    "promotionalLink" : "https://github.com/lfe999/FacialMotionCapture",
-   "programVersion" : "1.19.2.2", 
+   "programVersion" : "1.20.77.9", 
    "contentList" : [ 
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\defaults.json",
       "Custom\\Scripts\\LFE\\FacialMotionCapture\\src\\Controllers\\DeviceController.cs",

@@ -28,7 +28,7 @@ If you have VaM running already, click on the *Main UI > File (Open/Save) > Resc
 
 After you connect for the first time to the phone, a configuration file will be created that you can edit.  In the future this will be easier but sorry, it is by hand right now.
 
-**Saves\lfe_facialmotioncaptuire.json**
+**Saves\PluginData\lfe_facialmotioncaptuire.json**
 ```
 {
    "clientIp" : "192.168.1.2", 
