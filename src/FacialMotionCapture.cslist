@@ -8,6 +8,7 @@ Devices/BannaflakFaceCapClient.cs
 Devices/BlendShapeReceivedEventArgs.cs
 Devices/IFacialCaptureClient.cs
 Devices/RealIllusionLiveFaceClient.cs
+Devices/LiveLinkFaceClient.cs
 Extensions/AtomExtensions.cs
 Extensions/ComponentExtensions.cs
 Extensions/MVRScriptExtensions.cs
