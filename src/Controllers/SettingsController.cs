@@ -20,6 +20,7 @@ namespace LFE.FacialMotionCapture.Controllers {
         public const string DEVICE_KEY = "device";
         public const string MINIMUM_CHANGE_PCT_KEY = "smoothing";
         public const string GROUP_TOGGLE_KEY = "groupToggle";
+        public const string LIVE_LINK_PORT = "livelinkPort";
 
         public SettingsController(Plugin plugin)
         {
@@ -47,6 +48,14 @@ namespace LFE.FacialMotionCapture.Controllers {
 
         public void SetIpAddress(string ip) {
             _settings[CLIENT_IP_KEY] = ip;
+        }
+        public string GetLiveLinkPort()
+        {
+            return _settings[LIVE_LINK_PORT]?.Value;
+        }
+        public void SetLiveLinkPort(string port)
+        {
+            _settings[LIVE_LINK_PORT] = port;
         }
 
         public string GetLocalServerIpAddress() {

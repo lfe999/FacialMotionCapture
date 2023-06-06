@@ -14,6 +14,7 @@ namespace LFE.FacialMotionCapture.Controllers {
 
         private const string DEVICE_FACECAP = "Face Cap (iOS)";
         private const string DEVICE_LIVEFACE = "LIVE Face (iOS)";
+        private const string DEVICE_LIVELINKFACE = "Live Link Face (iOS)";
 
         private List<UIDynamic> groupUiElements = new List<UIDynamic>();
         private Dictionary<int, UIDynamicSlider> shapeMultiplierSliders = new Dictionary<int, UIDynamicSlider>();
@@ -33,6 +34,7 @@ namespace LFE.FacialMotionCapture.Controllers {
         public JSONStorableString StorableClientIp;
         public JSONStorableFloat StorableMinimumChangePct;
 
+        public JSONStorableString StorableLiveLinkPort;
         public UIController(Plugin plugin)
         {
             Plugin = plugin;
@@ -44,7 +46,8 @@ namespace LFE.FacialMotionCapture.Controllers {
             var clients = new List<string> {
                 "",
                 DEVICE_LIVEFACE,
-                DEVICE_FACECAP
+                DEVICE_FACECAP,
+                DEVICE_LIVELINKFACE,
             };
             StorableDeviceType = new JSONStorableStringChooser("Device", clients, Plugin.SettingsController.GetDevice() ?? "", "Choose Device");
 
@@ -53,6 +56,8 @@ namespace LFE.FacialMotionCapture.Controllers {
 
             var ipAddress = string.IsNullOrEmpty(Plugin.SettingsController.GetIpAddress()) ? "Enter IP address" : Plugin.SettingsController.GetIpAddress();
             StorableClientIp = new JSONStorableString("IP Address", ipAddress);
+            var livelinkPort = string.IsNullOrEmpty(Plugin.SettingsController.GetLiveLinkPort()) ? "Enter Live Link Port" : Plugin.SettingsController.GetLiveLinkPort();
+            StorableLiveLinkPort = new JSONStorableString("Live Link Port", livelinkPort);
 
             StorableRecordingMessage = new JSONStorableString("recordMessage", "");
 
@@ -118,6 +123,7 @@ namespace LFE.FacialMotionCapture.Controllers {
         private UIDynamicPopup _clientsChooser;
         private UIDynamicPopup _localIpsChooser;
         private UIDynamicTextField _targetValuesTextField;
+        private UIDynamicTextField _portTextField;
         private UIDynamicButton _serverConnectUi;
         private UIDynamicTextField _instructions;
         private void ClearUI() {
@@ -129,6 +135,10 @@ namespace LFE.FacialMotionCapture.Controllers {
             }
             if(_targetValuesTextField != null) {
                 Plugin.RemoveTextField(_targetValuesTextField);
+            }
+            if (_portTextField != null)
+            {
+                Plugin.RemoveTextField(_portTextField);
             }
             if(_serverConnectUi != null) {
                 Plugin.RemoveButton(_serverConnectUi);
@@ -167,6 +177,36 @@ namespace LFE.FacialMotionCapture.Controllers {
                     RerenderUI();
                 };
             }
+			if(StorableDeviceType.val == DEVICE_LIVELINKFACE) {
+                _portTextField = Plugin.CreateTextField(StorableLiveLinkPort);
+                _portTextField.backgroundImage.color = Color.white;
+                _portTextField.SetLayoutHeight(_clientsChooser.height);
+                var targetValuesInput = _portTextField.gameObject.AddComponent<InputField>();
+                _portTextField.height = _clientsChooser.height;
+                targetValuesInput.textComponent = _portTextField.UItext;
+                targetValuesInput.textComponent.fontSize = 40;
+                targetValuesInput.text = StorableLiveLinkPort.val;
+                targetValuesInput.image = _portTextField.backgroundImage;
+                targetValuesInput.onValueChanged.AddListener((string value) => {
+                    StorableLiveLinkPort.val = value;
+                    var ip = value.ToIPAddress();
+                    if (ip != null)
+                    {
+                        Plugin.SettingsController.SetLiveLinkPort(value);
+                        Plugin.SettingsController.SaveToGlobal();
+                    }
+                });
+                targetValuesInput.onEndEdit.AddListener((string value) =>
+                {
+                    var ip = value.ToIPAddress();
+                    if (ip == null)
+                    {
+                        StorableLiveLinkPort.val = "Enter Live Link Port";
+                    }
+                    Plugin.DeviceController.Destroy();
+                    RerenderUI();
+                });
+            }
 
             if(StorableDeviceType.val == DEVICE_LIVEFACE) {
                 // enter ip address textfield
@@ -200,7 +240,8 @@ namespace LFE.FacialMotionCapture.Controllers {
             // start/stop server button
             var deviceConfigLooksValid =
                 (StorableDeviceType.val == DEVICE_FACECAP && StorableServerIp.val.ToIPEndPoint() != null) ||
-                (StorableDeviceType.val == DEVICE_LIVEFACE && StorableClientIp.val.ToIPAddress() != null);
+                (StorableDeviceType.val == DEVICE_LIVEFACE && StorableClientIp.val.ToIPAddress() != null) ||
+                (StorableDeviceType.val == DEVICE_LIVELINKFACE && StorableLiveLinkPort.val != null);
             if(deviceConfigLooksValid) {
                 var isConnected = Plugin?.DeviceController?.IsConnected() ?? false;
                 if(isConnected) {
@@ -248,6 +289,12 @@ namespace LFE.FacialMotionCapture.Controllers {
                                 new RealIllusionLiveFaceClient(StorableClientIp.val.ToIPAddress(), Plugin)
                             );
                         }
+                        else if (StorableDeviceType.val == DEVICE_LIVELINKFACE) {
+                            Plugin.DeviceController = new DeviceController(
+                                Plugin,
+                                new LiveLinkFaceClient(StorableLiveLinkPort.val, Plugin)
+                            );
+                        }
                         Plugin.DeviceController.Connect();
                         RerenderUI();
                     }
@@ -291,6 +338,13 @@ namespace LFE.FacialMotionCapture.Controllers {
                     "<b>App</b>: Note IP address on screen\n" +
                     "<b>VaM Plugin</b>: Enter IP from <b>App</b>\n" +
                     "<b>VaM Plugin</b>: Click 'Connect'";
+            }
+            else if (StorableDeviceType.val == DEVICE_LIVELINKFACE) {
+                _instructions.text =
+                    "Live Link Face by Unreal Engine (iOS)\n" +
+                    "https://apps.apple.com/us/app/id1495370836\n\n" +
+                    "<size=26><b>App</b>: Add a target with the IP of the computer and hit the 'LIVE' button at the top\n" +
+                    "<b>VaM Plugin</b>: Click 'Connect'\n</size>";
             }
 
             if(Plugin.DeviceController?.IsConnected() ?? false) {
